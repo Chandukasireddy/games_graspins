@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semant — Guess the Word by Meaning</title>
+  <meta name="description" content="Semant is a daily word-guessing game. Use semantic clues to find the secret word.">
+  <meta name="theme-color" content="#f5f6f8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <div class="app">
+    <div class="container">
+
+      <!-- LOADING -->
+      <div id="loader" class="loader">
+        <div class="loader__spinner"></div>
+        <div class="loader__text">Loading word vectors…</div>
+      </div>
+
+      <!-- GAME CONTENT -->
+      <div id="app-content" style="display: none;">
+
+        <!-- HEADER -->
+        <header class="header">
+          <div class="logo">
+            <span class="logo__icon">🧠</span>
+            <h1 class="logo__text">Semant</h1>
+            <span class="logo__badge" id="game-number">#0</span>
+          </div>
+          <div class="header__actions">
+            <button class="icon-btn" id="btn-help" title="How to play" aria-label="How to play">?</button>
+          </div>
+        </header>
+
+        <!-- GAME INFO -->
+        <div class="game-info" id="game-info">
+          Loading similarity benchmarks…
+        </div>
+
+        <!-- INPUT -->
+        <section class="input-section">
+          <div class="input-group">
+            <input
+              type="text"
+              id="guess-input"
+              class="input-field"
+              placeholder="Enter a word…"
+              autocomplete="off"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              maxlength="30"
+            >
+            <button id="btn-guess" class="btn-guess">Guess</button>
+          </div>
+          <div id="input-hint" class="input-hint"></div>
+        </section>
+
+        <!-- GUESS LIST (Semantle-style: latest on top, rest sorted by score) -->
+        <div id="guess-section" class="guess-section"></div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="action-bar">
+          <button class="btn-action btn-action--hint" id="btn-hint">💡 Hint</button>
+          <button class="btn-action" id="btn-giveup">🏳️ Give Up</button>
+        </div>
+
+        <!-- STATS FOOTER -->
+        <footer class="stats-footer">
+          <div class="stat-item">
+            <div class="stat-item__value" id="stat-played">0</div>
+            <div class="stat-item__label">Played</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-item__value" id="stat-win-pct">0</div>
+            <div class="stat-item__label">Win %</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-item__value" id="stat-streak">0</div>
+            <div class="stat-item__label">Streak</div>
+          </div>
+        </footer>
+
+      </div><!-- /app-content -->
+    </div>
+  </div>
+
+  <!-- HELP MODAL -->
+  <div id="help-modal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title">How to Play</h2>
+        <button class="modal__close" id="help-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="how-to-play__step">
+          <div class="how-to-play__number">1</div>
+          <div class="how-to-play__text">
+            <strong>Guess any word.</strong> There's a secret word chosen every day — your goal is to find it.
+          </div>
+        </div>
+        <div class="how-to-play__step">
+          <div class="how-to-play__number">2</div>
+          <div class="how-to-play__text">
+            <strong>Check the similarity score.</strong> After each guess, you see how <em>semantically close</em> your word is. Higher = closer in meaning. Negative = very different.
+          </div>
+        </div>
+        <div class="how-to-play__step">
+          <div class="how-to-play__number">3</div>
+          <div class="how-to-play__text">
+            <strong>Use proximity.</strong> If your guess is in the top closest words, you'll see its rank and a colored bar.
+          </div>
+        </div>
+        <div class="how-to-play__step">
+          <div class="how-to-play__number">4</div>
+          <div class="how-to-play__text">
+            <strong>Latest guess on top.</strong> Below it, all previous guesses are sorted by similarity so you can track your progress.
+          </div>
+        </div>
+        <div class="how-to-play__step">
+          <div class="how-to-play__number">💡</div>
+          <div class="how-to-play__text">
+            <strong>Need help?</strong> Use the <em>Hint</em> button to reveal a word with a better score than your current best.
+          </div>
+        </div>
+        <div class="how-to-play__example">
+          <div class="how-to-play__example-title">Proximity Guide</div>
+          <div class="temp-legend">
+            <div class="temp-legend__item">
+              <div class="temp-legend__dot" style="background: #22c55e"></div> Top 10%
+            </div>
+            <div class="temp-legend__item">
+              <div class="temp-legend__dot" style="background: #eab308"></div> Top 25%
+            </div>
+            <div class="temp-legend__item">
+              <div class="temp-legend__dot" style="background: #f97316"></div> Top 50%
+            </div>
+            <div class="temp-legend__item">
+              <div class="temp-legend__dot" style="background: #9ca3af"></div> Cold
+            </div>
+          </div>
+        </div>
+        <div class="how-to-play__step" style="margin-top: 14px;">
+          <div class="how-to-play__number">💡</div>
+          <div class="how-to-play__text">
+            <strong>Tip:</strong> The game measures <em>semantic meaning</em>, not spelling. "Ocean" and "sea" are close, but "ocean" and "lotion" are not!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN MODAL -->
+  <div id="win-modal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 class="modal__title">🎉 You got it!</h2>
+        <button class="modal__close" id="win-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <div class="win-modal__celebration">
+          <div class="win-modal__emoji">🧠</div>
+          <div class="win-modal__word" id="win-word">WORD</div>
+          <div class="win-modal__subtitle">was today's secret word</div>
+        </div>
+        <div class="win-modal__stats">
+          <div class="win-stat">
+            <div class="win-stat__value" id="win-guesses">0</div>
+            <div class="win-stat__label">Guesses</div>
+          </div>
+          <div class="win-stat">
+            <div class="win-stat__value" id="win-best-score">0</div>
+            <div class="win-stat__label">2nd Best</div>
+          </div>
+          <div class="win-stat">
+            <div class="win-stat__value" id="win-streak">0</div>
+            <div class="win-stat__label">Streak</div>
+          </div>
+        </div>
+        <button class="btn-share" id="btn-share">📤 Share Results</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="embeddings.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
