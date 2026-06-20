@@ -512,6 +512,34 @@
             transform: scale(0.97);
         }
 
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .settings-close-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            line-height: 1;
+        }
+
+        .settings-close-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
         /* ===== New Game Button ===== */
         .new-game-area {
             padding: 16px 12px 32px;
@@ -606,7 +634,10 @@
 
         <!-- Collapsible settings panel -->
         <div id="settings-panel" class="settings-panel">
-            <p class="settings-panel-title">Quick Settings</p>
+            <div class="settings-header">
+                <p class="settings-panel-title" style="margin-bottom:0">Quick Settings</p>
+                <button id="settings-close" class="settings-close-btn" aria-label="Close settings">✕</button>
+            </div>
             <div class="settings-row">
                 <div class="settings-field">
                     <label for="inline-players">👥 Players</label>
@@ -634,7 +665,7 @@
                     <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
             </button>
-            <span class="nav-title">🕵️ Spy</span>
+            <span id="nav-logo" class="nav-title" style="cursor:pointer">🕵️ Spy</span>
             <button id="settings-button" class="nav-btn" aria-label="Settings">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"></circle>
@@ -747,6 +778,14 @@
         settingsOverlay.addEventListener('click', closeSettings);
         settingsApply.addEventListener('click', applySettings);
         newGameButton.addEventListener('click', () => { closeSettings(); startGame(); });
+        document.getElementById('settings-close').addEventListener('click', closeSettings);
+        document.getElementById('nav-logo').addEventListener('click', () => {
+            closeSettings();
+            currentlyOpenCard = null;
+            cardGrid.innerHTML = '';
+            gameScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+        });
 
         // ===== Start Game =====
         function startGame() {
