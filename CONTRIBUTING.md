@@ -60,6 +60,13 @@ All scoreboards, player configurations, custom names, high scores, and stats sho
 ### 4. Web Audio API Sound Synthesis
 To keep repository size tiny and load times instantaneous, do not upload heavy sound assets (like `.mp3` or `.wav` files). Instead, synthesize all game audio dynamically using the **Web Audio API** (e.g. oscillators, biquad filters, and custom envelope gain nodes).
 
+### 5. Mobile-First Responsiveness (CRITICAL)
+A clean, touch-friendly UI on mobile devices is a top priority. Responsiveness must be carefully implemented, with special attention to:
+- **Solo Games** (e.g., Minesweeper): Grid sizing, board widths, and configuration toggles must fit entirely within vertical viewports on small screens to avoid horizontal scrolling or cropped game elements.
+- **2 Player Games** (e.g., Connect Four, Tic-Tac-Toe, Dots & Boxes): Visual boards, scoreboards, and turn indicators must scale fluidly. Interaction zones must have large, comfortable touch targets (at least `44px` to `48px` square) for local sharing play.
+- **Tools** (e.g., Coin Toss, Dice Roller): Control dashboards, history rings, and interactive 3D coins/dice must scale down cleanly, preserving layout integrity on narrow viewports.
+- **Responsive Layout Design**: Use CSS flexbox, grids, media queries (`@media (max-width: 480px)`), and fluid sizing units (`clamp()`, `vw`, `vh`) to prevent layout overflows.
+
 ---
 
 ## 🚀 How to Add a New Game / Tool
