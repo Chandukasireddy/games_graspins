@@ -33,6 +33,7 @@ games_graspins/
 │
 └── tools/                     # 🪙 Utility tools for game selectors
     ├── cointoss/              # 3D coin toss randomizer
+    ├── dice/                  # 3D dice rolling selector
     └── mixer/                 # Player mixer and team randomizer
 ```
 

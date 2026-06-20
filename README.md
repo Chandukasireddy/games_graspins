@@ -66,6 +66,14 @@ A premium, curated collection of serverless, self-contained word puzzles, party 
   * Synthesized metallic ringing and table bounce audio.
   * Tracks tails/heads statistics and consecutive streaks.
 
+### 🎲 Dice Roller (Tool)
+* **Goal**: Roll custom 3D neon dice to determine scores or settle turns.
+* **Features**:
+  * 3D physics-based tumbling dice animation rotating randomly on multiple axes.
+  * Staggered audio synthesis playing table rumble and realistic staggered plastic clack sounds on land.
+  * Settings menu to dynamically choose the number of active dice (from 1 to 5).
+  * Dashboards tracking rolling statistics (total rolls, average sum, max roll) and recent roll history.
+
 ### 🎛️ Mixer (Tool)
 * **Goal**: A player management tool to randomize teams, generate group pairings, and distribute players for activities.
 

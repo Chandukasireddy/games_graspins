@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller — Graspins Games</title>
+    <meta name="description" content="Roll custom 3D neon dice with physical tumbling transitions, customized dice counts, and synthesized audio.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --border: #475569;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --neon-pink: #ec4899;
+            --radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+            transform: translateX(-4px);
+        }
+
+        header {
+            margin-bottom: 28px;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+            background: linear-gradient(to right, #f8fafc, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        /* Settings Card */
+        .config-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+        }
+
+        .setting-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+
+        .segmented-control {
+            display: flex;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .segment-option {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .segment-option input {
+            display: none;
+        }
+
+        .segment-option span {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .segment-option input:checked + span {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        /* 3D Dice Field */
+        .dice-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            min-height: 160px;
+            margin-bottom: 28px;
+            perspective: 1200px;
+            padding: 20px 0;
+        }
+
+        .die-container {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1.05);
+        }
+
+        /* Bouncing roll animation */
+        @keyframes dieTumble {
+            0% { transform: translateY(0) scale(1); }
+            15% { transform: translateY(-70px) scale(1.08); }
+            30% { transform: translateY(8px) scale(0.96); }
+            45% { transform: translateY(-35px) scale(1.04); }
+            60% { transform: translateY(4px) scale(0.98); }
+            75% { transform: translateY(-12px) scale(1.01); }
+            90% { transform: translateY(1px) scale(1); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        .die-container.rolling {
+            animation: dieTumble 1.4s ease-out;
+        }
+
+        .face {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 3px solid var(--accent);
+            border-radius: 14px;
+            box-shadow: inset 0 0 12px rgba(99, 102, 241, 0.25), 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 10px;
+            box-sizing: border-box;
+            align-items: center;
+            justify-items: center;
+            backface-visibility: hidden;
+        }
+
+        /* Face alignments in 3D Space */
+        .face.front  { transform: rotateY(  0deg) translateZ(40px); }
+        .face.back   { transform: rotateY(180deg) translateZ(40px); border-color: var(--neon-pink); }
+        .face.right  { transform: rotateY( 90deg) translateZ(40px); }
+        .face.left   { transform: rotateY(-90deg) translateZ(40px); border-color: var(--neon-pink); }
+        .face.top    { transform: rotateX( 90deg) translateZ(40px); }
+        .face.bottom { transform: rotateX(-90deg) translateZ(40px); border-color: var(--neon-pink); }
+
+        /* Pips configuration */
+        .pip {
+            width: 13px;
+            height: 13px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #fff, 0 0 4px var(--accent);
+        }
+
+        .face.back .pip, .face.left .pip, .face.bottom .pip {
+            box-shadow: 0 0 8px #fff, 0 0 4px var(--neon-pink);
+        }
+
+        .pip-tl { grid-column: 1; grid-row: 1; }
+        .pip-tr { grid-column: 3; grid-row: 1; }
+        .pip-cl { grid-column: 1; grid-row: 2; }
+        .pip-center { grid-column: 2; grid-row: 2; }
+        .pip-cr { grid-column: 3; grid-row: 2; }
+        .pip-bl { grid-column: 1; grid-row: 3; }
+        .pip-br { grid-column: 3; grid-row: 3; }
+
+        /* Controls */
+        .btn-roll {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 14px 48px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: var(--transition);
+            margin-bottom: 24px;
+        }
+
+        .btn-roll:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-roll:active {
+            transform: translateY(0);
+        }
+
+        .btn-roll:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Results dashboard */
+        .result-box {
+            min-height: 48px;
+            margin-bottom: 24px;
+        }
+
+        .result-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: var(--transition);
+        }
+
+        .result-text.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-sum {
+            background: linear-gradient(to right, #fbbf24, #f59e0b, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Stats & History */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .history-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: left;
+        }
+
+        .history-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-reset {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-reset:hover {
+            color: #ef4444;
+        }
+
+        .history-items {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            min-height: 36px;
+            align-items: center;
+        }
+
+        .history-item {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--neon-pink) 100%);
+            color: #fff;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .title { font-size: 1.8rem; }
+            .btn-roll { width: 100%; }
+            .dice-area { gap: 20px; }
+            .die-container, .face { width: 70px; height: 70px; }
+            .face.front  { transform: rotateY(  0deg) translateZ(35px); }
+            .face.back   { transform: rotateY(180deg) translateZ(35px); }
+            .face.right  { transform: rotateY( 90deg) translateZ(35px); }
+            .face.left   { transform: rotateY(-90deg) translateZ(35px); }
+            .face.top    { transform: rotateX( 90deg) translateZ(35px); }
+            .face.bottom { transform: rotateX(-90deg) translateZ(35px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <a href="../../index.html" class="back-link">➔ Back to Games</a>
+
+        <header>
+            <h1 class="title">Dice Roller</h1>
+            <p class="subtitle">Roll neon 3D dice to determine your scores</p>
+        </header>
+
+        <!-- Configuration Panel -->
+        <div class="config-card">
+            <div class="setting-label">Number of Dice</div>
+            <div class="segmented-control" id="dice-count-select">
+                <label class="segment-option">
+                    <input type="radio" name="dice-count" value="1" checked>
+                    <span>1</span>
+                </label>
+                <label class="segment-option">
+                    <input type="radio" name="dice-count" value="2">
+                    <span>2</span>
+                </label>
+                <label class="segment-option">
+                    <input type="radio" name="dice-count" value="3">
+                    <span>3</span>
+                </label>
+                <label class="segment-option">
+                    <input type="radio" name="dice-count" value="4">
+                    <span>4</span>
+                </label>
+                <label class="segment-option">
+                    <input type="radio" name="dice-count" value="5">
+                    <span>5</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 3D Dice Field -->
+        <div class="dice-area" id="dice-area">
+            <!-- Dynamic 3D cubes injected here -->
+        </div>
+
+        <!-- Roll triggers -->
+        <button class="btn-roll" id="btn-roll">Roll Dice</button>
+
+        <!-- Sum Display -->
+        <div class="result-box">
+            <div class="result-text" id="result-text">Total: <span class="result-sum" id="result-sum">0</span></div>
+        </div>
+
+        <!-- Statistics Panel -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-rolls">0</div>
+                <div class="stat-label">Total Rolls</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-average">0</div>
+                <div class="stat-label">Average Sum</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-max">0</div>
+                <div class="stat-label">Max Roll</div>
+            </div>
+        </div>
+
+        <!-- Rolling History -->
+        <div class="history-box">
+            <div class="history-title">
+                <span>Recent Sums</span>
+                <button class="btn-reset" id="btn-reset">Clear Stats</button>
+            </div>
+            <div class="history-items" id="history-container">
+                <!-- Rolling history nodes -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // Synthesize Tumbling Roll Audio
+        function playRollSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                
+                // Play quick successive thuds simulating tumble inside a cup/hand
+                for (let i = 0; i < 5; i++) {
+                    const time = now + i * 0.12;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(90 + Math.random() * 30, time);
+                    osc.frequency.exponentialRampToValueAtTime(30, time + 0.07);
+                    
+                    gain.gain.setValueAtTime(0.06, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(time);
+                    osc.stop(time + 0.08);
+                }
+            } catch (e) {}
+        }
+
+        // Synthesize Sharp landing Clack & Thud
+        function playClackSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                
+                // High frequency clack (filtered white noise)
+                const bufferSize = ctx.sampleRate * 0.04;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(2000 + Math.random() * 400, now);
+                filter.Q.setValueAtTime(5, now);
+                
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+                noise.stop(now + 0.04);
+
+                // Low frequency thud
+                const osc = ctx.createOscillator();
+                const gainOsc = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(130, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.07);
+                
+                gainOsc.gain.setValueAtTime(0.18, now);
+                gainOsc.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+                
+                osc.connect(gainOsc);
+                gainOsc.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } catch(e) {}
+        }
+
+        // Base 3D Rotations corresponding to each face
+        const faceRotations = [
+            { x: 0, y: 0 },      // 1 (front)
+            { x: 0, y: 180 },    // 2 (back)
+            { x: 0, y: -90 },    // 3 (right)
+            { x: 0, y: 90 },     // 4 (left)
+            { x: -90, y: 0 },    // 5 (top)
+            { x: 90, y: 0 }      // 6 (bottom)
+        ];
+
+        // State variables
+        let diceCount = 1;
+        let isRolling = false;
+        let rollHistory = [];
+        let rollStats = {
+            totalRolls: 0,
+            sumOfAllRolls: 0,
+            maxRoll: 0
+        };
+
+        const STORAGE_KEY = 'graspins_diceroll_v1';
+
+        // DOM elements
+        const diceArea = document.getElementById('dice-area');
+        const btnRoll = document.getElementById('btn-roll');
+        const resultText = document.getElementById('result-text');
+        const resultSum = document.getElementById('result-sum');
+        const statRolls = document.getElementById('stat-rolls');
+        const statAverage = document.getElementById('stat-average');
+        const statMax = document.getElementById('stat-max');
+        const historyContainer = document.getElementById('history-container');
+        const btnReset = document.getElementById('btn-reset');
+        const radioGroup = document.getElementsByName('dice-count');
+
+        // Create a 3D cube markup
+        function createDieElement(index) {
+            const container = document.createElement('div');
+            container.className = 'die-container';
+            container.dataset.index = index;
+            
+            container.innerHTML = `
+                <div class="cube" id="cube-${index}">
+                    <!-- Face 1 (Front) -->
+                    <div class="face front">
+                        <div class="pip pip-center"></div>
+                    </div>
+                    <!-- Face 2 (Back) -->
+                    <div class="face back">
+                        <div class="pip pip-tl"></div>
+                        <div class="pip pip-br"></div>
+                    </div>
+                    <!-- Face 3 (Right) -->
+                    <div class="face right">
+                        <div class="pip pip-tl"></div>
+                        <div class="pip pip-center"></div>
+                        <div class="pip pip-br"></div>
+                    </div>
+                    <!-- Face 4 (Left) -->
+                    <div class="face left">
+                        <div class="pip pip-tl"></div>
+                        <div class="pip pip-tr"></div>
+                        <div class="pip pip-bl"></div>
+                        <div class="pip pip-br"></div>
+                    </div>
+                    <!-- Face 5 (Top) -->
+                    <div class="face top">
+                        <div class="pip pip-tl"></div>
+                        <div class="pip pip-tr"></div>
+                        <div class="pip pip-center"></div>
+                        <div class="pip pip-bl"></div>
+                        <div class="pip pip-br"></div>
+                    </div>
+                    <!-- Face 6 (Bottom) -->
+                    <div class="face bottom">
+                        <div class="pip pip-tl"></div>
+                        <div class="pip pip-tr"></div>
+                        <div class="pip pip-cl"></div>
+                        <div class="pip pip-cr"></div>
+                        <div class="pip pip-bl"></div>
+                        <div class="pip pip-br"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Add click-to-roll event on individual die
+            container.addEventListener('click', () => {
+                if (!isRolling) rollAllDice();
+            });
+
+            return container;
+        }
+
+        // Render current number of dice
+        function renderDice() {
+            diceArea.innerHTML = '';
+            for (let i = 0; i < diceCount; i++) {
+                diceArea.appendChild(createDieElement(i));
+            }
+        }
+
+        // Load stats
+        function loadStats() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    diceCount = data.diceCount || 1;
+                    rollStats = data.rollStats || { totalRolls: 0, sumOfAllRolls: 0, maxRoll: 0 };
+                    rollHistory = data.rollHistory || [];
+                    
+                    // Sync setting control
+                    for (let radio of radioGroup) {
+                        if (parseInt(radio.value, 10) === diceCount) {
+                            radio.checked = true;
+                        }
+                    }
+                    
+                    updateUIStats();
+                    renderHistory();
+                }
+            } catch (e) {}
+            renderDice();
+        }
+
+        // Save stats
+        function saveStats() {
+            try {
+                const data = {
+                    diceCount,
+                    rollStats,
+                    rollHistory
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch(e) {}
+        }
+
+        function updateUIStats() {
+            statRolls.textContent = rollStats.totalRolls;
+            const avg = rollStats.totalRolls > 0 ? (rollStats.sumOfAllRolls / rollStats.totalRolls).toFixed(1) : 0;
+            statAverage.textContent = avg;
+            statMax.textContent = rollStats.maxRoll;
+        }
+
+        function renderHistory() {
+            historyContainer.innerHTML = '';
+            const recent = rollHistory.slice(-10);
+            recent.forEach(outcome => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.textContent = outcome;
+                historyContainer.appendChild(item);
+            });
+        }
+
+        // Roll All Dice
+        function rollAllDice() {
+            if (isRolling) return;
+            isRolling = true;
+            btnRoll.disabled = true;
+            resultText.classList.remove('visible');
+
+            playRollSound();
+
+            const diceContainers = document.querySelectorAll('.die-container');
+            let rolledValues = [];
+            
+            diceContainers.forEach((container, idx) => {
+                container.classList.add('rolling');
+                const cube = container.querySelector('.cube');
+                
+                // Get random value (1-6)
+                const val = Math.floor(Math.random() * 6) + 1;
+                rolledValues.push(val);
+                
+                const base = faceRotations[val - 1];
+                
+                // Add random multi-axis turns (3-6 spins) to create wild 3D rolling effect
+                const rotX = base.x + 360 * (3 + Math.floor(Math.random() * 3));
+                const rotY = base.y + 360 * (3 + Math.floor(Math.random() * 3));
+                const rotZ = 360 * Math.floor(Math.random() * 2);
+
+                cube.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+
+                // Stagger audio landing clicks for physical realism
+                setTimeout(() => {
+                    playClackSound();
+                }, 1150 + idx * 90);
+            });
+
+            // Handle settling
+            setTimeout(() => {
+                let sum = 0;
+                rolledValues.forEach(val => sum += val);
+
+                // Stop roll animations
+                diceContainers.forEach(container => {
+                    container.classList.remove('rolling');
+                });
+
+                // Update results display
+                resultSum.textContent = sum;
+                resultText.classList.add('visible');
+
+                // Update Statistics
+                rollStats.totalRolls++;
+                rollStats.sumOfAllRolls += sum;
+                if (sum > rollStats.maxRoll) {
+                    rollStats.maxRoll = sum;
+                }
+
+                rollHistory.push(sum);
+                if (rollHistory.length > 20) rollHistory.shift();
+
+                saveStats();
+                updateUIStats();
+                renderHistory();
+
+                isRolling = false;
+                btnRoll.disabled = false;
+            }, 1400);
+        }
+
+        // Listeners
+        btnRoll.addEventListener('click', rollAllDice);
+
+        // Segment Select Listener
+        radioGroup.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (isRolling) return;
+                diceCount = parseInt(e.target.value, 10);
+                saveStats();
+                renderDice();
+                resultText.classList.remove('visible');
+            });
+        });
+
+        // Reset Listener
+        btnReset.addEventListener('click', () => {
+            if (isRolling) return;
+            if (confirm('Are you sure you want to clear statistics and roll history?')) {
+                rollStats = { totalRolls: 0, sumOfAllRolls: 0, maxRoll: 0 };
+                rollHistory = [];
+                saveStats();
+                updateUIStats();
+                renderHistory();
+                resultText.classList.remove('visible');
+            }
+        });
+
+        // Initialize state
+        loadStats();
+    </script>
+</body>
+</html>
