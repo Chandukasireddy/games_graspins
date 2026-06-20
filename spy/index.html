@@ -378,8 +378,8 @@
         }
 
         .card.revealed .card-front {
-            background: #111827;
-            color: #6b7280;
+            background: #374151;
+            color: #9ca3af;
         }
 
         .card.revealed .card-front .player-icon {
@@ -394,13 +394,148 @@
             cursor: default;
         }
 
-        .revealed-word {
-            font-size: 0.85rem;
+        .revealed-label {
+            font-size: 0.8rem;
             font-weight: 600;
             color: #9ca3af;
-            margin-top: 2px;
-            word-break: break-word;
-            line-height: 1.3;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== Collapsible Settings Panel ===== */
+        .settings-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 60;
+        }
+
+        .settings-overlay.open {
+            display: block;
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 70;
+            background: rgba(22, 19, 50, 0.97);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 16px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease;
+        }
+
+        .settings-panel.open {
+            max-height: 400px;
+            padding: 16px 16px 20px;
+        }
+
+        .settings-panel-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            text-align: center;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .settings-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .settings-field label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .settings-field input,
+        .settings-field select {
+            width: 100%;
+            padding: 10px;
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+            outline: none;
+            font-family: inherit;
+            -webkit-appearance: none;
+            transition: border-color 0.2s;
+        }
+
+        .settings-field input:focus,
+        .settings-field select:focus {
+            border-color: var(--indigo-500);
+        }
+
+        .settings-field select {
+            font-size: 0.85rem;
+        }
+
+        .settings-apply-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s;
+            font-family: inherit;
+        }
+
+        .settings-apply-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* ===== New Game Button ===== */
+        .new-game-area {
+            padding: 16px 12px 32px;
+            text-align: center;
+        }
+
+        .new-game-btn {
+            width: 100%;
+            max-width: 400px;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+            font-family: inherit;
+        }
+
+        .new-game-btn:active {
+            transform: scale(0.97);
         }
 
         /* ===== Animations ===== */
@@ -466,6 +601,32 @@
 
     <!-- ======== GAME SCREEN ======== -->
     <div id="game-screen" class="hidden">
+        <!-- Overlay for settings panel -->
+        <div id="settings-overlay" class="settings-overlay"></div>
+
+        <!-- Collapsible settings panel -->
+        <div id="settings-panel" class="settings-panel">
+            <p class="settings-panel-title">Quick Settings</p>
+            <div class="settings-row">
+                <div class="settings-field">
+                    <label for="inline-players">👥 Players</label>
+                    <input type="number" id="inline-players" min="3" max="25" value="4" inputmode="numeric">
+                </div>
+                <div class="settings-field">
+                    <label for="inline-spies">🎭 Spies</label>
+                    <input type="number" id="inline-spies" min="1" max="24" value="1" inputmode="numeric">
+                </div>
+                <div class="settings-field">
+                    <label for="inline-mode">⚙️ Mode</label>
+                    <select id="inline-mode">
+                        <option value="spy">Classic</option>
+                        <option value="random">Random</option>
+                    </select>
+                </div>
+            </div>
+            <button id="settings-apply" class="settings-apply-btn">Apply & New Round</button>
+        </div>
+
         <!-- Minimal top bar -->
         <nav class="top-nav">
             <button id="back-button" class="nav-btn" aria-label="Go back">
@@ -487,6 +648,11 @@
                 <!-- Cards generated by JavaScript -->
             </div>
         </div>
+
+        <!-- New Game button at the bottom -->
+        <div class="new-game-area">
+            <button id="new-game-button" class="new-game-btn">🔄 New Game</button>
+        </div>
     </div>
 
     <script>
@@ -501,6 +667,13 @@
         const startButton   = document.getElementById('start-button');
         const backButton    = document.getElementById('back-button');
         const settingsButton = document.getElementById('settings-button');
+        const newGameButton  = document.getElementById('new-game-button');
+        const settingsPanel  = document.getElementById('settings-panel');
+        const settingsOverlay = document.getElementById('settings-overlay');
+        const settingsApply  = document.getElementById('settings-apply');
+        const inlinePlayers  = document.getElementById('inline-players');
+        const inlineSpies    = document.getElementById('inline-spies');
+        const inlineMode     = document.getElementById('inline-mode');
         const playerCountInput = document.getElementById('player-count');
         const spyCountInput    = document.getElementById('spy-count');
         const spyModeSelect    = document.getElementById('spy-mode');
@@ -537,11 +710,43 @@
             }
         }
 
+        // ===== Settings Panel Toggle =====
+        function toggleSettings() {
+            const isOpen = settingsPanel.classList.contains('open');
+            if (isOpen) {
+                closeSettings();
+            } else {
+                // Sync inline inputs with current setup values
+                inlinePlayers.value = playerCountInput.value;
+                inlineSpies.value = spyCountInput.value;
+                inlineMode.value = spyModeSelect.value;
+                settingsPanel.classList.add('open');
+                settingsOverlay.classList.add('open');
+            }
+        }
+
+        function closeSettings() {
+            settingsPanel.classList.remove('open');
+            settingsOverlay.classList.remove('open');
+        }
+
+        function applySettings() {
+            // Copy inline values back to main inputs
+            playerCountInput.value = inlinePlayers.value;
+            spyCountInput.value = inlineSpies.value;
+            spyModeSelect.value = inlineMode.value;
+            closeSettings();
+            startGame();
+        }
+
         // ===== Events =====
         document.addEventListener('DOMContentLoaded', loadWords);
         startButton.addEventListener('click', startGame);
-        backButton.addEventListener('click', goToMenu);
-        settingsButton.addEventListener('click', goToMenu);
+        backButton.addEventListener('click', () => { window.location.href = '../index.html'; });
+        settingsButton.addEventListener('click', toggleSettings);
+        settingsOverlay.addEventListener('click', closeSettings);
+        settingsApply.addEventListener('click', applySettings);
+        newGameButton.addEventListener('click', () => { closeSettings(); startGame(); });
 
         // ===== Start Game =====
         function startGame() {
@@ -657,12 +862,11 @@
                     card.classList.remove('flipped');
                     card.classList.add('revealed');
 
-                    // Update front to blacked-out with the word shown
+                    // Update front to gray with just "Revealed" text
                     const front = card.querySelector('.card-front');
-                    const displayWord = card.dataset.role === 'SPY' ? 'SPY' : card.dataset.word;
                     front.innerHTML = `
                         <p class="player-num">Player ${playerNumber}</p>
-                        <p class="revealed-word">${displayWord}</p>
+                        <p class="revealed-label">Revealed</p>
                     `;
 
                     currentlyOpenCard = null;
