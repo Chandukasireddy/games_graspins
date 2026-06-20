@@ -7,10 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: radial-gradient(1200px 600px at 50% -10%, #312e81 0%, #1e1b4b 40%, #0f172a 100%);
         }
         /* -- Card Flip Animation -- */
         .card {
@@ -20,7 +21,7 @@
             position: relative;
             width: 100%;
             height: 100%;
-            transition: transform 0.7s;
+            transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
             transform-style: preserve-3d;
         }
         .card.flipped .card-inner {
@@ -36,54 +37,82 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 0.75rem; /* 12px */
+            border-radius: 1rem;
+            overflow: hidden;
         }
         .card-back {
             transform: rotateY(180deg);
         }
+        /* Subtle entrance animation for cards */
+        @keyframes pop-in {
+            from { opacity: 0; transform: translateY(12px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .card { animation: pop-in 0.35s ease both; }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+        }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 flex flex-col items-center justify-center min-h-screen p-4">
+<body class="text-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
 
-    <div id="game-wrapper" class="w-full max-w-4xl mx-auto">
+    <div id="game-wrapper" class="w-full max-w-5xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Who is the Spy? 🕵️</h1>
-            <p class="text-lg text-gray-600 mt-2">Uncover the spy hiding among you!</p>
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white drop-shadow">Who is the Spy? <span class="inline-block">🕵️</span></h1>
+            <p class="text-lg text-indigo-200 mt-3">Pass the device around &mdash; uncover the spy hiding among you.</p>
         </header>
 
         <!-- Setup Screen -->
-        <div id="setup-screen" class="bg-white p-8 rounded-xl shadow-lg text-center">
-            <h2 class="text-2xl font-semibold mb-6">Game Setup</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto text-left">
-                <div class="flex flex-col gap-2">
-                    <label for="player-count" class="text-sm font-semibold text-gray-600 uppercase">Number of Players</label>
-                    <input type="number" id="player-count" min="3" max="12" value="4" class="w-full p-2 border border-gray-300 rounded-lg text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <div id="setup-screen" class="glass text-gray-800 p-8 md:p-10 rounded-3xl shadow-2xl ring-1 ring-white/40 max-w-3xl mx-auto">
+            <h2 class="text-2xl font-bold mb-1 text-center text-gray-900">Game Setup</h2>
+            <p class="text-center text-gray-500 mb-8">Choose your options, then start the round.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left">
+                <div class="flex flex-col gap-2 bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-200">
+                    <label for="player-count" class="text-xs font-bold text-indigo-600 uppercase tracking-wide">👥 Players</label>
+                    <input type="number" id="player-count" min="3" max="25" value="4" class="w-full p-3 border border-gray-300 rounded-xl text-center text-2xl font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    <span class="text-xs text-gray-400 text-center">3 &ndash; 25 players</span>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label for="spy-count" class="text-sm font-semibold text-gray-600 uppercase">Number of Spies</label>
-                    <input type="number" id="spy-count" min="1" max="11" value="1" class="w-full p-2 border border-gray-300 rounded-lg text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <div class="flex flex-col gap-2 bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-200">
+                    <label for="spy-count" class="text-xs font-bold text-rose-600 uppercase tracking-wide">🎭 Spies</label>
+                    <input type="number" id="spy-count" min="1" max="24" value="1" class="w-full p-3 border border-gray-300 rounded-xl text-center text-2xl font-bold text-gray-800 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
+                    <span class="text-xs text-gray-400 text-center">fewer than players</span>
                 </div>
-                <div class="flex flex-col gap-2">
-                    <label for="spy-mode" class="text-sm font-semibold text-gray-600 uppercase">Spy Mode</label>
-                    <select id="spy-mode" class="w-full p-2 border border-gray-300 rounded-lg text-center text-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="spy">Spy (knows they're the spy)</option>
-                        <option value="random">Random (gets a different word)</option>
+                <div class="flex flex-col gap-2 bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-200">
+                    <label for="spy-mode" class="text-xs font-bold text-emerald-600 uppercase tracking-wide">⚙️ Spy Mode</label>
+                    <select id="spy-mode" class="w-full p-3 border border-gray-300 rounded-xl text-center text-lg font-semibold text-gray-800 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                        <option value="spy">Classic</option>
+                        <option value="random">Random word</option>
                     </select>
+                    <span class="text-xs text-gray-400 text-center">how the spy is shown</span>
                 </div>
             </div>
-            <p id="mode-hint" class="text-sm text-gray-500 mt-4">In <strong>Random</strong> mode the spy receives a different word and won't know they are the spy.</p>
-            <button id="start-button" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Start Game</button>
-            <p id="error-message" class="text-red-500 mt-4 h-5"></p>
+
+            <p id="mode-hint" class="text-sm text-gray-500 mt-6 text-center bg-indigo-50 rounded-xl py-3 px-4">
+                In <strong>Random</strong> mode the spy gets a different word and won&rsquo;t know they&rsquo;re the spy.
+            </p>
+
+            <button id="start-button" class="mt-7 w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-lg font-bold py-4 px-8 rounded-2xl hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
+                Start Game
+            </button>
+            <p id="error-message" class="text-rose-600 font-medium mt-4 h-5 text-center"></p>
         </div>
 
         <!-- Game Screen -->
         <div id="game-screen" class="hidden">
+            <!-- Round info + controls bar -->
+            <div class="glass text-gray-800 rounded-2xl shadow-xl ring-1 ring-white/40 p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div id="round-info" class="flex flex-wrap items-center justify-center gap-2 text-sm font-semibold"></div>
+                <div class="flex items-center gap-3">
+                    <button id="restart-button" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow">🔄 New Round</button>
+                    <button id="menu-button" class="bg-gray-200 text-gray-800 font-bold py-2.5 px-5 rounded-xl hover:bg-gray-300 active:scale-95 transition-all shadow">⚙️ Settings</button>
+                </div>
+            </div>
+
             <div id="card-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
                 <!-- Cards will be generated here by JavaScript -->
-            </div>
-            <div class="text-center mt-8">
-                <button id="restart-button" class="bg-gray-700 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-800 transition-colors shadow-md">New Game</button>
             </div>
         </div>
     </div>
@@ -98,11 +127,13 @@
         const gameScreen = document.getElementById('game-screen');
         const startButton = document.getElementById('start-button');
         const restartButton = document.getElementById('restart-button');
+        const menuButton = document.getElementById('menu-button');
         const playerCountInput = document.getElementById('player-count');
         const spyCountInput = document.getElementById('spy-count');
         const spyModeSelect = document.getElementById('spy-mode');
         const cardGrid = document.getElementById('card-grid');
         const errorMessage = document.getElementById('error-message');
+        const roundInfo = document.getElementById('round-info');
 
         // Tracks the card currently flipped open so only one can be open at a time
         let currentlyOpenCard = null;
@@ -123,20 +154,20 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.text();
-                
+
                 // Parse CSV: split by new line, slice to remove header, trim whitespace, and filter empty lines
                 allWords = data
                     .split(/\r?\n/)
-                    .slice(1) 
+                    .slice(1)
                     .map(word => word.trim())
                     .filter(word => word.length > 0);
-                
+
                 if (allWords.length === 0) {
                      throw new Error('Sheet is empty or formatted incorrectly.');
                 }
 
                 availableWords = [...allWords]; // Create a copy for the current session
-                
+
                 // Re-enable the button
                 startButton.disabled = false;
                 startButton.textContent = 'Start Game';
@@ -152,6 +183,7 @@
         document.addEventListener('DOMContentLoaded', loadWords);
         startButton.addEventListener('click', startGame);
         restartButton.addEventListener('click', restartGame);
+        menuButton.addEventListener('click', goToMenu);
 
         function startGame() {
             const playerCount = parseInt(playerCountInput.value, 10);
@@ -159,18 +191,18 @@
             const spyMode = spyModeSelect.value; // 'spy' or 'random'
 
             // Validate player count
-            if (isNaN(playerCount) || playerCount < 3 || playerCount > 12) {
-                errorMessage.textContent = 'Please choose between 3 and 12 players.';
+            if (isNaN(playerCount) || playerCount < 3 || playerCount > 25) {
+                showError('Please choose between 3 and 25 players.');
                 return;
             }
 
             // Validate spy count
             if (isNaN(spyCount) || spyCount < 1) {
-                errorMessage.textContent = 'There must be at least 1 spy.';
+                showError('There must be at least 1 spy.');
                 return;
             }
             if (spyCount >= playerCount) {
-                errorMessage.textContent = 'Number of spies must be less than the number of players.';
+                showError('Number of spies must be less than the number of players.');
                 return;
             }
             errorMessage.textContent = '';
@@ -184,7 +216,7 @@
                     console.log('All words used. Resetting list.');
                     availableWords = [...allWords];
                  } else {
-                    errorMessage.textContent = 'No words available to start the game.';
+                    showError('No words available to start the game.');
                     return;
                  }
             }
@@ -234,33 +266,47 @@
                 createCard(i + 1, word, role);
             }
 
+            // Update the round info bar
+            const modeLabel = spyMode === 'random' ? 'Random word' : 'Classic';
+            roundInfo.innerHTML = `
+                <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">👥 ${playerCount} players</span>
+                <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-700">🎭 ${spyCount} ${spyCount === 1 ? 'spy' : 'spies'}</span>
+                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">⚙️ ${modeLabel}</span>
+            `;
+
             // Switch screens
             setupScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
         }
 
+        function showError(message) {
+            errorMessage.textContent = message;
+        }
+
         function createCard(playerNumber, word, role) {
             const cardElement = document.createElement('div');
-            cardElement.className = 'card h-48 md:h-56 cursor-pointer group';
-            
+            cardElement.className = 'card h-44 md:h-56 cursor-pointer group';
+            cardElement.style.animationDelay = `${(playerNumber - 1) * 0.04}s`;
+
             // Different HTML for the back of the card based on the role
             const cardBackHTML = role === 'SPY' ?
-                `<div class="card-back bg-white border-4 border-red-500 flex flex-col items-center justify-center p-4">
-                    <p class="text-3xl md:text-4xl font-bold text-center text-red-600">You are the SPY!</p>
-                    <p class="text-md mt-2 text-gray-600">Blend in and find the word.</p>
+                `<div class="card-back bg-gradient-to-br from-rose-50 to-white border-4 border-rose-500 flex flex-col items-center justify-center p-4 text-center">
+                    <p class="text-3xl md:text-4xl font-extrabold text-rose-600">You are the SPY!</p>
+                    <p class="text-sm mt-2 text-gray-600">Blend in and find the word.</p>
                 </div>` :
-                `<div class="card-back bg-white border-2 border-indigo-400 flex flex-col items-center justify-center p-4">
-                    <p class="text-sm uppercase font-semibold text-gray-500">Your role: Civilian</p>
-                    <p class="text-2xl md:text-3xl font-bold mt-2 text-center">${word}</p>
+                `<div class="card-back bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-300 flex flex-col items-center justify-center p-4 text-center">
+                    <p class="text-xs uppercase font-bold tracking-wide text-indigo-400">Your word</p>
+                    <p class="text-2xl md:text-3xl font-extrabold mt-2 text-gray-800">${word}</p>
                 </div>`;
 
 
             cardElement.innerHTML = `
-                <div class="card-inner shadow-lg">
+                <div class="card-inner shadow-xl rounded-2xl">
                     <!-- Front of the Card -->
-                    <div class="card-front bg-indigo-500 text-white flex flex-col items-center justify-center p-4 group-hover:bg-indigo-600 transition-colors">
-                        <p class="text-2xl font-bold">Player ${playerNumber}</p>
-                        <p class="text-sm mt-2">Click to reveal</p>
+                    <div class="card-front bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex flex-col items-center justify-center p-4 group-hover:from-indigo-600 group-hover:to-violet-700 transition-all">
+                        <span class="text-3xl mb-1">🪪</span>
+                        <p class="text-2xl font-extrabold">Player ${playerNumber}</p>
+                        <p class="text-xs mt-1 text-indigo-100">Tap to reveal</p>
                     </div>
                     <!-- Back of the Card -->
                     ${cardBackHTML}
@@ -277,9 +323,8 @@
 
                     // Update the front to show it has been revealed
                     const cardFront = card.querySelector('.card-front');
-                    cardFront.classList.remove('bg-indigo-500', 'group-hover:bg-indigo-600');
-                    cardFront.classList.add('bg-gray-600');
-                    cardFront.innerHTML = `<p class="text-xl font-bold text-gray-300">REVEALED</p>`;
+                    cardFront.className = 'card-front bg-gray-700 text-gray-300 flex flex-col items-center justify-center p-4';
+                    cardFront.innerHTML = `<span class="text-2xl mb-1">✅</span><p class="text-lg font-bold">REVEALED</p>`;
 
                     // Make it unclickable by removing the cursor style and the event listener itself
                     card.classList.remove('cursor-pointer', 'group');
@@ -304,11 +349,17 @@
         }
 
         function restartGame() {
-            // Instead of going back to the setup screen, just start a new game
-            // with the same number of players.
+            // Start a new round with the same settings.
             startGame();
+        }
+
+        function goToMenu() {
+            // Return to the setup screen so settings (players, spies, mode) can be changed.
+            currentlyOpenCard = null;
+            cardGrid.innerHTML = '';
+            gameScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
         }
     </script>
 </body>
 </html>
-
