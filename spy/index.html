@@ -2,201 +2,557 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Who is the Spy? 🕵️</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-deep: #0c0a1d;
+            --bg-surface: #161332;
+            --indigo-500: #6366f1;
+            --indigo-600: #4f46e5;
+            --indigo-700: #4338ca;
+            --violet-600: #7c3aed;
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+            --emerald-500: #10b981;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-ring: rgba(255, 255, 255, 0.25);
+            --card-radius: 1rem;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(1200px 600px at 50% -10%, #312e81 0%, #1e1b4b 40%, #0f172a 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(ellipse 800px 500px at 50% -5%, #312e81 0%, #1e1b4b 35%, var(--bg-deep) 100%);
+            color: var(--text-primary);
+            min-height: 100dvh;
+            -webkit-tap-highlight-color: transparent;
         }
-        /* -- Card Flip Animation -- */
-        .card {
-            perspective: 1000px; /* Gives the 3D effect */
+
+        /* ===== Top Navigation Bar (game screen only) ===== */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(12, 10, 29, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
-            transform-style: preserve-3d;
-        }
-        .card.flipped .card-inner {
-            transform: rotateY(180deg);
-        }
-        .card-front,
-        .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden; /* Safari */
-            backface-visibility: hidden;
+
+        .nav-btn {
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 1rem;
-            overflow: hidden;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
         }
+
+        .nav-btn:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-title {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        /* ===== Setup Screen ===== */
+        .setup-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            padding: 24px 16px;
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .setup-header h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: #fff;
+        }
+
+        .setup-header p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .setup-card {
+            background: var(--glass-bg);
+            color: #1e293b;
+            width: 100%;
+            max-width: 420px;
+            padding: 28px 20px;
+            border-radius: 24px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--glass-ring);
+        }
+
+        .setup-card h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-align: center;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .setup-card .subtitle {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .option-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .option-label.players { color: var(--indigo-600); }
+        .option-label.spies { color: var(--rose-600); }
+        .option-label.mode { color: var(--emerald-500); }
+
+        .option-input,
+        .option-select {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .option-input:focus {
+            border-color: var(--indigo-500);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .option-select {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .option-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .mode-hint {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-align: center;
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
+            color: #fff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s, opacity 0.2s;
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+        }
+
+        .start-btn:active {
+            transform: scale(0.98);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .error-text {
+            color: var(--rose-500);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        /* ===== Game Screen ===== */
+        .game-container {
+            padding: 12px 12px 32px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (min-width: 480px) {
+            .card-grid {
+                gap: 14px;
+            }
+        }
+
+        @media (min-width: 640px) {
+            .card-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+        }
+
+        @media (min-width: 900px) {
+            .card-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* ===== Card ===== */
+        .card {
+            perspective: 1000px;
+            cursor: pointer;
+            animation: pop-in 0.35s ease both;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            padding-top: 120%;  /* aspect ratio for tall mobile cards */
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-style: preserve-3d;
+            border-radius: var(--card-radius);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .card-front {
+            background: linear-gradient(145deg, var(--indigo-500), var(--violet-600));
+            color: #fff;
+        }
+
+        .card-front .player-icon {
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .card-front .player-num {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .card-front .tap-hint {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
         .card-back {
             transform: rotateY(180deg);
         }
-        /* Subtle entrance animation for cards */
-        @keyframes pop-in {
-            from { opacity: 0; transform: translateY(12px) scale(0.96); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
+
+        .card-back.civilian {
+            background: linear-gradient(145deg, #eef2ff, #fff);
+            border: 2px solid #c7d2fe;
         }
-        .card { animation: pop-in 0.35s ease both; }
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
+
+        .card-back.spy {
+            background: linear-gradient(145deg, #fff1f2, #fff);
+            border: 3px solid var(--rose-500);
+        }
+
+        .card-back .word-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #a5b4fc;
+        }
+
+        .card-back .word-text {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 6px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .card-back.spy .spy-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--rose-600);
+        }
+
+        .card-back.spy .spy-subtitle {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        /* ===== Revealed State ===== */
+        .card.revealed .card-inner {
+            transform: none;
+        }
+
+        .card.revealed .card-front {
+            background: #111827;
+            color: #6b7280;
+        }
+
+        .card.revealed .card-front .player-icon {
+            display: none;
+        }
+
+        .card.revealed .card-front .tap-hint {
+            display: none;
+        }
+
+        .card.revealed {
+            cursor: default;
+        }
+
+        .revealed-word {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-top: 2px;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes pop-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ===== Utilities ===== */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
-<body class="text-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+<body>
 
-    <div id="game-wrapper" class="w-full max-w-5xl mx-auto">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white drop-shadow">Who is the Spy? <span class="inline-block">🕵️</span></h1>
-            <p class="text-lg text-indigo-200 mt-3">Pass the device around &mdash; uncover the spy hiding among you.</p>
-        </header>
+    <!-- ======== SETUP SCREEN ======== -->
+    <div id="setup-screen" class="setup-wrapper">
+        <div class="setup-header">
+            <h1>Who is the Spy? 🕵️</h1>
+            <p>Pass the device around — uncover the spy hiding among you.</p>
+        </div>
 
-        <!-- Setup Screen -->
-        <div id="setup-screen" class="glass text-gray-800 p-8 md:p-10 rounded-3xl shadow-2xl ring-1 ring-white/40 max-w-3xl mx-auto">
-            <h2 class="text-2xl font-bold mb-1 text-center text-gray-900">Game Setup</h2>
-            <p class="text-center text-gray-500 mb-8">Choose your options, then start the round.</p>
+        <div class="setup-card">
+            <h2>Game Setup</h2>
+            <p class="subtitle">Choose your options, then start the round.</p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left">
-                <div class="flex flex-col gap-2 bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-200">
-                    <label for="player-count" class="text-xs font-bold text-indigo-600 uppercase tracking-wide">👥 Players</label>
-                    <input type="number" id="player-count" min="3" max="25" value="4" class="w-full p-3 border border-gray-300 rounded-xl text-center text-2xl font-bold text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
-                    <span class="text-xs text-gray-400 text-center">3 &ndash; 25 players</span>
+            <div class="option-group">
+                <div class="option-item">
+                    <label for="player-count" class="option-label players">👥 Players</label>
+                    <input type="number" id="player-count" min="3" max="25" value="4" class="option-input" inputmode="numeric">
+                    <span class="option-hint">3 – 25 players</span>
                 </div>
-                <div class="flex flex-col gap-2 bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-200">
-                    <label for="spy-count" class="text-xs font-bold text-rose-600 uppercase tracking-wide">🎭 Spies</label>
-                    <input type="number" id="spy-count" min="1" max="24" value="1" class="w-full p-3 border border-gray-300 rounded-xl text-center text-2xl font-bold text-gray-800 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
-                    <span class="text-xs text-gray-400 text-center">fewer than players</span>
+                <div class="option-item">
+                    <label for="spy-count" class="option-label spies">🎭 Spies</label>
+                    <input type="number" id="spy-count" min="1" max="24" value="1" class="option-input" inputmode="numeric">
+                    <span class="option-hint">fewer than players</span>
                 </div>
-                <div class="flex flex-col gap-2 bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-200">
-                    <label for="spy-mode" class="text-xs font-bold text-emerald-600 uppercase tracking-wide">⚙️ Spy Mode</label>
-                    <select id="spy-mode" class="w-full p-3 border border-gray-300 rounded-xl text-center text-lg font-semibold text-gray-800 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                <div class="option-item">
+                    <label for="spy-mode" class="option-label mode">⚙️ Spy Mode</label>
+                    <select id="spy-mode" class="option-select">
                         <option value="spy">Classic</option>
                         <option value="random">Random word</option>
                     </select>
-                    <span class="text-xs text-gray-400 text-center">how the spy is shown</span>
+                    <span class="option-hint">how the spy is shown</span>
                 </div>
             </div>
 
-            <p id="mode-hint" class="text-sm text-gray-500 mt-6 text-center bg-indigo-50 rounded-xl py-3 px-4">
-                In <strong>Random</strong> mode the spy gets a different word and won&rsquo;t know they&rsquo;re the spy.
+            <p id="mode-hint" class="mode-hint">
+                In <strong>Random</strong> mode the spy gets a different word and won't know they're the spy.
             </p>
 
-            <button id="start-button" class="mt-7 w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-lg font-bold py-4 px-8 rounded-2xl hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
-                Start Game
-            </button>
-            <p id="error-message" class="text-rose-600 font-medium mt-4 h-5 text-center"></p>
+            <button id="start-button" class="start-btn">Start Game</button>
+            <p id="error-message" class="error-text"></p>
         </div>
+    </div>
 
-        <!-- Game Screen -->
-        <div id="game-screen" class="hidden">
-            <!-- Round info + controls bar -->
-            <div class="glass text-gray-800 rounded-2xl shadow-xl ring-1 ring-white/40 p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div id="round-info" class="flex flex-wrap items-center justify-center gap-2 text-sm font-semibold"></div>
-                <div class="flex items-center gap-3">
-                    <button id="restart-button" class="bg-indigo-600 text-white font-bold py-2.5 px-5 rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow">🔄 New Round</button>
-                    <button id="menu-button" class="bg-gray-200 text-gray-800 font-bold py-2.5 px-5 rounded-xl hover:bg-gray-300 active:scale-95 transition-all shadow">⚙️ Settings</button>
-                </div>
-            </div>
+    <!-- ======== GAME SCREEN ======== -->
+    <div id="game-screen" class="hidden">
+        <!-- Minimal top bar -->
+        <nav class="top-nav">
+            <button id="back-button" class="nav-btn" aria-label="Go back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span class="nav-title">🕵️ Spy</span>
+            <button id="settings-button" class="nav-btn" aria-label="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        </nav>
 
-            <div id="card-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                <!-- Cards will be generated here by JavaScript -->
+        <div class="game-container">
+            <div id="card-grid" class="card-grid">
+                <!-- Cards generated by JavaScript -->
             </div>
         </div>
     </div>
 
     <script>
-        // Will hold the words fetched from the CSV
+        // ===== State =====
         let allWords = [];
         let availableWords = [];
-
-        // DOM Elements
-        const setupScreen = document.getElementById('setup-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const startButton = document.getElementById('start-button');
-        const restartButton = document.getElementById('restart-button');
-        const menuButton = document.getElementById('menu-button');
-        const playerCountInput = document.getElementById('player-count');
-        const spyCountInput = document.getElementById('spy-count');
-        const spyModeSelect = document.getElementById('spy-mode');
-        const cardGrid = document.getElementById('card-grid');
-        const errorMessage = document.getElementById('error-message');
-        const roundInfo = document.getElementById('round-info');
-
-        // Tracks the card currently flipped open so only one can be open at a time
         let currentlyOpenCard = null;
 
-        // --- Word Loading Function ---
+        // ===== DOM =====
+        const setupScreen  = document.getElementById('setup-screen');
+        const gameScreen    = document.getElementById('game-screen');
+        const startButton   = document.getElementById('start-button');
+        const backButton    = document.getElementById('back-button');
+        const settingsButton = document.getElementById('settings-button');
+        const playerCountInput = document.getElementById('player-count');
+        const spyCountInput    = document.getElementById('spy-count');
+        const spyModeSelect    = document.getElementById('spy-mode');
+        const cardGrid       = document.getElementById('card-grid');
+        const errorMessage   = document.getElementById('error-message');
+
+        // ===== Word Loading =====
         async function loadWords() {
             try {
-                // Show loading state on the button
                 startButton.disabled = true;
-                startButton.textContent = 'Loading Words...';
+                startButton.textContent = 'Loading Words…';
 
-                // URL for the Google Sheet, published as a CSV
                 const sheetURL = 'https://docs.google.com/spreadsheets/d/1k3pE4dRKMqpACy6NCLhOkmeZZS0gj0TQ_8XCim6xt_k/export?format=csv';
                 const response = await fetch(sheetURL);
 
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.text();
 
-                // Parse CSV: split by new line, slice to remove header, trim whitespace, and filter empty lines
                 allWords = data
                     .split(/\r?\n/)
                     .slice(1)
-                    .map(word => word.trim())
-                    .filter(word => word.length > 0);
+                    .map(w => w.trim())
+                    .filter(w => w.length > 0);
 
-                if (allWords.length === 0) {
-                     throw new Error('Sheet is empty or formatted incorrectly.');
-                }
+                if (allWords.length === 0) throw new Error('Sheet is empty or formatted incorrectly.');
 
-                availableWords = [...allWords]; // Create a copy for the current session
-
-                // Re-enable the button
+                availableWords = [...allWords];
                 startButton.disabled = false;
                 startButton.textContent = 'Start Game';
-
             } catch (error) {
-                console.error("Failed to load or parse words from Google Sheet:", error);
+                console.error('Failed to load words:', error);
                 errorMessage.textContent = 'Error: Could not load game words.';
                 startButton.textContent = 'Error Loading';
             }
         }
 
-        // --- Event Listeners ---
+        // ===== Events =====
         document.addEventListener('DOMContentLoaded', loadWords);
         startButton.addEventListener('click', startGame);
-        restartButton.addEventListener('click', restartGame);
-        menuButton.addEventListener('click', goToMenu);
+        backButton.addEventListener('click', goToMenu);
+        settingsButton.addEventListener('click', goToMenu);
 
+        // ===== Start Game =====
         function startGame() {
             const playerCount = parseInt(playerCountInput.value, 10);
-            const spyCount = parseInt(spyCountInput.value, 10);
-            const spyMode = spyModeSelect.value; // 'spy' or 'random'
+            const spyCount    = parseInt(spyCountInput.value, 10);
+            const spyMode     = spyModeSelect.value;
 
-            // Validate player count
             if (isNaN(playerCount) || playerCount < 3 || playerCount > 25) {
                 showError('Please choose between 3 and 25 players.');
                 return;
             }
-
-            // Validate spy count
             if (isNaN(spyCount) || spyCount < 1) {
                 showError('There must be at least 1 spy.');
                 return;
@@ -207,28 +563,21 @@
             }
             errorMessage.textContent = '';
 
-
-            // --- Game Logic ---
-            // Check if there are any words left to play with
             if (availableWords.length === 0) {
-                 if (allWords.length > 0) {
-                    // All words have been used, so reset the list for a new round
-                    console.log('All words used. Resetting list.');
+                if (allWords.length > 0) {
                     availableWords = [...allWords];
-                 } else {
+                } else {
                     showError('No words available to start the game.');
                     return;
-                 }
+                }
             }
 
-            // 1. Randomly select the civilian word from the available list
+            // Pick civilian word
             const wordIndex = Math.floor(Math.random() * availableWords.length);
             const chosenWord = availableWords[wordIndex];
-
-            // 2. Remove the chosen word to prevent repetition in the same session
             availableWords.splice(wordIndex, 1);
 
-            // 3. In random mode, pick a second, different word for the spies
+            // Pick spy word for random mode
             let spyWord = '';
             if (spyMode === 'random') {
                 const otherWords = allWords.filter(w => w !== chosenWord);
@@ -237,25 +586,23 @@
                 }
             }
 
-            // 4. Randomly assign which players are spies
+            // Assign spy positions
             const spyIndexes = new Set();
             while (spyIndexes.size < spyCount) {
                 spyIndexes.add(Math.floor(Math.random() * playerCount));
             }
 
-            // 5. Generate cards
-            currentlyOpenCard = null; // Reset open-card lock for the new round
-            cardGrid.innerHTML = ''; // Clear any old cards
+            // Build cards
+            currentlyOpenCard = null;
+            cardGrid.innerHTML = '';
             for (let i = 0; i < playerCount; i++) {
                 const isSpy = spyIndexes.has(i);
                 let word, role;
                 if (isSpy) {
                     if (spyMode === 'random') {
-                        // Spy looks like a civilian but holds a different word
                         word = spyWord;
                         role = 'Civilian';
                     } else {
-                        // Classic spy: no word, told they are the spy
                         word = '';
                         role = 'SPY';
                     }
@@ -266,95 +613,77 @@
                 createCard(i + 1, word, role);
             }
 
-            // Update the round info bar
-            const modeLabel = spyMode === 'random' ? 'Random word' : 'Classic';
-            roundInfo.innerHTML = `
-                <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">👥 ${playerCount} players</span>
-                <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-700">🎭 ${spyCount} ${spyCount === 1 ? 'spy' : 'spies'}</span>
-                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">⚙️ ${modeLabel}</span>
-            `;
-
-            // Switch screens
+            // Switch to game screen
             setupScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
         }
 
-        function showError(message) {
-            errorMessage.textContent = message;
-        }
-
+        // ===== Create Card =====
         function createCard(playerNumber, word, role) {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'card h-44 md:h-56 cursor-pointer group';
-            cardElement.style.animationDelay = `${(playerNumber - 1) * 0.04}s`;
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.animationDelay = `${(playerNumber - 1) * 0.04}s`;
+            card.dataset.word = word;
+            card.dataset.role = role;
 
-            // Different HTML for the back of the card based on the role
-            const cardBackHTML = role === 'SPY' ?
-                `<div class="card-back bg-gradient-to-br from-rose-50 to-white border-4 border-rose-500 flex flex-col items-center justify-center p-4 text-center">
-                    <p class="text-3xl md:text-4xl font-extrabold text-rose-600">You are the SPY!</p>
-                    <p class="text-sm mt-2 text-gray-600">Blend in and find the word.</p>
-                </div>` :
-                `<div class="card-back bg-gradient-to-br from-indigo-50 to-white border-2 border-indigo-300 flex flex-col items-center justify-center p-4 text-center">
-                    <p class="text-xs uppercase font-bold tracking-wide text-indigo-400">Your word</p>
-                    <p class="text-2xl md:text-3xl font-extrabold mt-2 text-gray-800">${word}</p>
-                </div>`;
+            const isSpy = role === 'SPY';
 
+            const backClass = isSpy ? 'card-face card-back spy' : 'card-face card-back civilian';
+            const backContent = isSpy
+                ? `<p class="spy-title">You are the SPY!</p>
+                   <p class="spy-subtitle">Blend in and find the word.</p>`
+                : `<p class="word-label">Your word</p>
+                   <p class="word-text">${word}</p>`;
 
-            cardElement.innerHTML = `
-                <div class="card-inner shadow-xl rounded-2xl">
-                    <!-- Front of the Card -->
-                    <div class="card-front bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex flex-col items-center justify-center p-4 group-hover:from-indigo-600 group-hover:to-violet-700 transition-all">
-                        <span class="text-3xl mb-1">🪪</span>
-                        <p class="text-2xl font-extrabold">Player ${playerNumber}</p>
-                        <p class="text-xs mt-1 text-indigo-100">Tap to reveal</p>
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face card-front">
+                        <span class="player-icon">🪪</span>
+                        <p class="player-num">Player ${playerNumber}</p>
+                        <p class="tap-hint">Tap to reveal</p>
                     </div>
-                    <!-- Back of the Card -->
-                    ${cardBackHTML}
+                    <div class="${backClass}">
+                        ${backContent}
+                    </div>
                 </div>
             `;
 
-            // Add click event listener to flip the card, then flip it back
-            const handleFlip = (event) => {
-                const card = event.currentTarget;
+            const handleFlip = () => {
+                // Already revealed — ignore
+                if (card.classList.contains('revealed')) return;
 
-                // If the card is already flipped (showing the back), flip it back and lock it.
                 if (card.classList.contains('flipped')) {
+                    // Flip back and mark as revealed
                     card.classList.remove('flipped');
+                    card.classList.add('revealed');
 
-                    // Update the front to show it has been revealed
-                    const cardFront = card.querySelector('.card-front');
-                    cardFront.className = 'card-front bg-gray-700 text-gray-300 flex flex-col items-center justify-center p-4';
-                    cardFront.innerHTML = `<span class="text-2xl mb-1">✅</span><p class="text-lg font-bold">REVEALED</p>`;
+                    // Update front to blacked-out with the word shown
+                    const front = card.querySelector('.card-front');
+                    const displayWord = card.dataset.role === 'SPY' ? 'SPY' : card.dataset.word;
+                    front.innerHTML = `
+                        <p class="player-num">Player ${playerNumber}</p>
+                        <p class="revealed-word">${displayWord}</p>
+                    `;
 
-                    // Make it unclickable by removing the cursor style and the event listener itself
-                    card.classList.remove('cursor-pointer', 'group');
-                    card.removeEventListener('click', handleFlip);
-
-                    // Release the lock so the next player can open their card
                     currentlyOpenCard = null;
                 } else {
-                    // Only one card may be open at a time: ignore clicks while another is open
-                    if (currentlyOpenCard && currentlyOpenCard !== card) {
-                        return;
-                    }
-                    // If the card is on its front, flip it to the back
+                    // Only one card open at a time
+                    if (currentlyOpenCard && currentlyOpenCard !== card) return;
                     card.classList.add('flipped');
                     currentlyOpenCard = card;
                 }
             };
 
-            cardElement.addEventListener('click', handleFlip);
-
-            cardGrid.appendChild(cardElement);
+            card.addEventListener('click', handleFlip);
+            cardGrid.appendChild(card);
         }
 
-        function restartGame() {
-            // Start a new round with the same settings.
-            startGame();
+        // ===== Helpers =====
+        function showError(msg) {
+            errorMessage.textContent = msg;
         }
 
         function goToMenu() {
-            // Return to the setup screen so settings (players, spies, mode) can be changed.
             currentlyOpenCard = null;
             cardGrid.innerHTML = '';
             gameScreen.classList.add('hidden');
