@@ -54,13 +54,27 @@
 
         <!-- Setup Screen -->
         <div id="setup-screen" class="bg-white p-8 rounded-xl shadow-lg text-center">
-            <h2 class="text-2xl font-semibold mb-4">Game Setup</h2>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <label for="player-count" class="text-lg">Number of Players:</label>
-                <input type="number" id="player-count" min="3" max="12" value="4" class="w-24 p-2 border border-gray-300 rounded-lg text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <button id="start-button" class="w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Start Game</button>
+            <h2 class="text-2xl font-semibold mb-6">Game Setup</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto text-left">
+                <div class="flex flex-col gap-2">
+                    <label for="player-count" class="text-sm font-semibold text-gray-600 uppercase">Number of Players</label>
+                    <input type="number" id="player-count" min="3" max="12" value="4" class="w-full p-2 border border-gray-300 rounded-lg text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="spy-count" class="text-sm font-semibold text-gray-600 uppercase">Number of Spies</label>
+                    <input type="number" id="spy-count" min="1" max="11" value="1" class="w-full p-2 border border-gray-300 rounded-lg text-center text-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="spy-mode" class="text-sm font-semibold text-gray-600 uppercase">Spy Mode</label>
+                    <select id="spy-mode" class="w-full p-2 border border-gray-300 rounded-lg text-center text-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="spy">Spy (knows they're the spy)</option>
+                        <option value="random">Random (gets a different word)</option>
+                    </select>
+                </div>
             </div>
-             <p id="error-message" class="text-red-500 mt-4 h-5"></p>
+            <p id="mode-hint" class="text-sm text-gray-500 mt-4">In <strong>Random</strong> mode the spy receives a different word and won't know they are the spy.</p>
+            <button id="start-button" class="mt-6 w-full sm:w-auto bg-indigo-600 text-white font-bold py-2 px-8 rounded-lg hover:bg-indigo-700 transition-colors shadow-md">Start Game</button>
+            <p id="error-message" class="text-red-500 mt-4 h-5"></p>
         </div>
 
         <!-- Game Screen -->
@@ -85,8 +99,13 @@
         const startButton = document.getElementById('start-button');
         const restartButton = document.getElementById('restart-button');
         const playerCountInput = document.getElementById('player-count');
+        const spyCountInput = document.getElementById('spy-count');
+        const spyModeSelect = document.getElementById('spy-mode');
         const cardGrid = document.getElementById('card-grid');
         const errorMessage = document.getElementById('error-message');
+
+        // Tracks the card currently flipped open so only one can be open at a time
+        let currentlyOpenCard = null;
 
         // --- Word Loading Function ---
         async function loadWords() {
@@ -136,13 +155,25 @@
 
         function startGame() {
             const playerCount = parseInt(playerCountInput.value, 10);
+            const spyCount = parseInt(spyCountInput.value, 10);
+            const spyMode = spyModeSelect.value; // 'spy' or 'random'
 
             // Validate player count
-            if (playerCount < 3 || playerCount > 12) {
+            if (isNaN(playerCount) || playerCount < 3 || playerCount > 12) {
                 errorMessage.textContent = 'Please choose between 3 and 12 players.';
                 return;
             }
-             errorMessage.textContent = '';
+
+            // Validate spy count
+            if (isNaN(spyCount) || spyCount < 1) {
+                errorMessage.textContent = 'There must be at least 1 spy.';
+                return;
+            }
+            if (spyCount >= playerCount) {
+                errorMessage.textContent = 'Number of spies must be less than the number of players.';
+                return;
+            }
+            errorMessage.textContent = '';
 
 
             // --- Game Logic ---
@@ -158,22 +189,48 @@
                  }
             }
 
-            // 1. Randomly select a word from the available list
+            // 1. Randomly select the civilian word from the available list
             const wordIndex = Math.floor(Math.random() * availableWords.length);
             const chosenWord = availableWords[wordIndex];
 
             // 2. Remove the chosen word to prevent repetition in the same session
             availableWords.splice(wordIndex, 1);
-            
-            // 3. Randomly assign the spy
-            const spyIndex = Math.floor(Math.random() * playerCount);
 
-            // 4. Generate cards
+            // 3. In random mode, pick a second, different word for the spies
+            let spyWord = '';
+            if (spyMode === 'random') {
+                const otherWords = allWords.filter(w => w !== chosenWord);
+                if (otherWords.length > 0) {
+                    spyWord = otherWords[Math.floor(Math.random() * otherWords.length)];
+                }
+            }
+
+            // 4. Randomly assign which players are spies
+            const spyIndexes = new Set();
+            while (spyIndexes.size < spyCount) {
+                spyIndexes.add(Math.floor(Math.random() * playerCount));
+            }
+
+            // 5. Generate cards
+            currentlyOpenCard = null; // Reset open-card lock for the new round
             cardGrid.innerHTML = ''; // Clear any old cards
             for (let i = 0; i < playerCount; i++) {
-                const isSpy = (i === spyIndex);
-                const word = isSpy ? '' : chosenWord; // The spy does not get a word.
-                const role = isSpy ? 'SPY' : 'Civilian';
+                const isSpy = spyIndexes.has(i);
+                let word, role;
+                if (isSpy) {
+                    if (spyMode === 'random') {
+                        // Spy looks like a civilian but holds a different word
+                        word = spyWord;
+                        role = 'Civilian';
+                    } else {
+                        // Classic spy: no word, told they are the spy
+                        word = '';
+                        role = 'SPY';
+                    }
+                } else {
+                    word = chosenWord;
+                    role = 'Civilian';
+                }
                 createCard(i + 1, word, role);
             }
 
@@ -223,13 +280,21 @@
                     cardFront.classList.remove('bg-indigo-500', 'group-hover:bg-indigo-600');
                     cardFront.classList.add('bg-gray-600');
                     cardFront.innerHTML = `<p class="text-xl font-bold text-gray-300">REVEALED</p>`;
-                    
+
                     // Make it unclickable by removing the cursor style and the event listener itself
                     card.classList.remove('cursor-pointer', 'group');
                     card.removeEventListener('click', handleFlip);
+
+                    // Release the lock so the next player can open their card
+                    currentlyOpenCard = null;
                 } else {
+                    // Only one card may be open at a time: ignore clicks while another is open
+                    if (currentlyOpenCard && currentlyOpenCard !== card) {
+                        return;
+                    }
                     // If the card is on its front, flip it to the back
                     card.classList.add('flipped');
+                    currentlyOpenCard = card;
                 }
             };
 
