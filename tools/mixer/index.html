@@ -135,6 +135,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     // preserve ordering (React before ReactDOM before Babel before text/babel).
     const doc = new DOMParser().parseFromString(template, 'text/html');
     document.documentElement.replaceWith(doc.documentElement);
+
+    // Add dynamic back-link to root portal
+    try {
+      const backLink = document.createElement('a');
+      backLink.href = '../../index.html';
+      backLink.className = 'back-link';
+      backLink.innerHTML = '➔ Back to Games';
+      backLink.style.cssText = 'text-decoration: none; color: #5a5142; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; font-family: system-ui, sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; position: absolute; top: 16px; left: 16px; z-index: 10000; transition: all 0.25s ease;';
+      backLink.onmouseover = () => {
+        backLink.style.color = '#1a1a1a';
+        backLink.style.transform = 'translateX(-4px)';
+      };
+      backLink.onmouseout = () => {
+        backLink.style.color = '#5a5142';
+        backLink.style.transform = 'translateX(0)';
+      };
+      document.body.prepend(backLink);
+    } catch (e) {
+      console.error('Failed to inject back link:', e);
+    }
+
     const dead = Array.from(document.scripts);
     for (const old of dead) {
       const s = document.createElement('script');
