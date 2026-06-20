@@ -43,12 +43,19 @@
             background: var(--bg-page);
             color: var(--text-primary);
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 24px;
             overflow-x: hidden;
+        }
+
+        /* When the content is taller than the viewport (small phones),
+           pin to the top and allow scrolling instead of clipping the header. */
+        @media (max-height: 760px) {
+            body { justify-content: flex-start; }
         }
 
         .container {
@@ -288,10 +295,28 @@
         }
 
         @media (max-width: 480px) {
-            .title { font-size: 1.8rem; }
-            .board-container { padding: 6px; }
+            body { padding: 16px 12px; }
+            .container { max-width: 100%; }
+            .back-link { margin-bottom: 14px; }
+            header { margin-bottom: 14px; }
+            .title { font-size: 1.7rem; }
+            .subtitle { font-size: 0.82rem; }
+            .hud-card { padding: 12px; margin-bottom: 12px; }
+            .hud-value { font-size: 1.35rem; }
+            .face-btn { width: 42px; height: 42px; font-size: 1.4rem; }
+            .mobile-controls { gap: 8px; margin-bottom: 12px; }
+            .tool-btn { padding: 11px 8px; font-size: 0.85rem; gap: 6px; }
+            .board-container { padding: 6px; margin-bottom: 12px; }
             .board { gap: 4px; }
             .cell { border-radius: 4px; font-size: 0.95rem; }
+            .btn-reset { padding: 13px; }
+        }
+
+        @media (max-width: 360px) {
+            .title { font-size: 1.5rem; }
+            .hud-value { font-size: 1.2rem; }
+            .tool-btn { font-size: 0.78rem; }
+            .cell { font-size: 0.85rem; }
         }
     </style>
 </head>

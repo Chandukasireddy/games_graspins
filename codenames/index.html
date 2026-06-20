@@ -1,1572 +1,3404 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Codenames</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap');
-
-  :root {
-    --red: #c0392b;
-    --red-light: #e74c3c;
-    --blue: #1a5276;
-    --blue-light: #2980b9;
-    --neutral: #7f8c8d;
-    --assassin: #1a1a1a;
-    --bystander: #d4b896;
-    --bystander-dark: #b8986a;
-    --bg: #0d0d0d;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --text: #e8e0d0;
-    --text-dim: #8a8070;
-    --gold: #c9a84c;
-    --gold-light: #f0c96e;
-    --border: #333;
-  }
-
-  /* ── LIGHT THEME ── */
-  body.light {
-    --bg: #f0ece4;
-    --surface: #e8e2d8;
-    --surface2: #ddd8ce;
-    --text: #2a2218;
-    --text-dim: #7a6e5e;
-    --gold: #a07828;
-    --gold-light: #c49a3c;
-    --border: #c8c0b0;
-    --assassin: #2a2a2a;
-    --bystander: #c4a878;
-    --bystander-dark: #9a7c4e;
-  }
-
-  body.light #home {
-    background: radial-gradient(ellipse at 50% 30%, #e8dcc8 0%, #f0ece4 70%);
-  }
-
-  body.light #home::before {
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(160,120,40,0.06) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(160,120,40,0.06) 40px);
-  }
-
-  body.light input[type=text] { background: #fff; }
-
-  body.light .card:not(.revealed) { background: #fff; }
-  body.light .card-word { color: var(--text); }
-  body.light .revealed-bystander .card-word { color: #fff; }
-  body.light .revealed-assassin { background: #2a2a2a; }
-  body.light .revealed-assassin .card-word { color: #666; }
-
-  body.light .spy-cell.type-bystander { color: #5a3a10; }
-
-  /* theme toggle button */
-  .theme-toggle {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-size: 1rem;
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.15s;
-    flex-shrink: 0;
-  }
-  .theme-toggle:hover { border-color: var(--gold); color: var(--text); }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Rajdhani', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ── SCREENS ── */
-  .screen { display: none; min-height: 100vh; }
-  .screen.active { display: flex; flex-direction: column; }
-
-  /* ── HOME ── */
-  #home {
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(ellipse at 50% 30%, #1a1008 0%, #0d0d0d 70%);
-    padding: 2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  #home::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(201,168,76,0.04) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(201,168,76,0.04) 40px);
-    pointer-events: none;
-  }
-
-  .logo-wrap { margin-bottom: 2.5rem; position: relative; }
-
-  .logo-eye {
-    width: 64px; height: 64px;
-    margin: 0 auto 1rem;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-    animation: pulse 3s ease-in-out infinite;
-  }
-
-  .logo-eye::after {
-    content: '';
-    width: 24px; height: 24px;
-    background: var(--gold);
-    border-radius: 50%;
-  }
-
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.4); }
-    50% { box-shadow: 0 0 0 12px rgba(201,168,76,0); }
-  }
-
-  h1.title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(3rem, 10vw, 5.5rem);
-    letter-spacing: 0.08em;
-    color: var(--gold-light);
-    text-shadow: 0 0 40px rgba(201,168,76,0.3);
-    line-height: 0.9;
-  }
-
-  h1.title span { color: var(--text-dim); font-size: 0.4em; display: block; letter-spacing: 0.3em; }
-
-  .tagline {
-    font-size: 0.9rem;
-    color: var(--text-dim);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-top: 0.5rem;
-  }
-
-  .home-cards {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    max-width: 600px;
-    margin-bottom: 2rem;
-  }
-
-  .mode-card {
-    flex: 1;
-    min-width: 160px;
-    max-width: 260px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    padding: 1.5rem 1.2rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: left;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .mode-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    transition: opacity 0.2s;
-    opacity: 0;
-  }
-
-  .mode-card.red-card::before { background: var(--red-light); }
-  .mode-card.blue-card::before { background: var(--blue-light); }
-  .mode-card.neutral-card::before { background: var(--gold); }
-
-  .mode-card:hover { border-color: var(--gold); transform: translateY(-2px); }
-  .mode-card:hover::before { opacity: 1; }
-
-  .mode-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
-  .mode-title { font-size: 1.1rem; font-weight: 700; color: var(--text); letter-spacing: 0.05em; margin-bottom: 0.3rem; }
-  .mode-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.4; }
-
-  .room-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    width: 100%;
-    max-width: 340px;
-  }
-
-  .home-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
-    width: 100%;
-    max-width: 340px;
-    text-align: left;
-  }
-
-  .home-section .btn-primary { margin-top: 0.6rem; }
-  .home-section .back-btn { width: 100%; }
-
-  .hint-text {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    margin-top: -0.3rem;
-  }
-
-  .field-label {
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 0.3rem;
-  }
-
-  input[type=text] {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.15em;
-    padding: 0.6rem 0.8rem;
-    outline: none;
-    border-radius: 2px;
-    text-align: center;
-    text-transform: uppercase;
-    transition: border-color 0.2s;
-  }
-
-  input[type=text]:focus { border-color: var(--gold); }
-  input[type=text]::placeholder { color: var(--text-dim); opacity: 0.4; }
-
-  .team-toggle {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .team-btn {
-    flex: 1;
-    padding: 0.7rem;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.15s;
-  }
-
-  .team-btn.red.active { background: var(--red); border-color: var(--red-light); color: white; }
-  .team-btn.blue.active { background: var(--blue); border-color: var(--blue-light); color: white; }
-  .team-btn:not(.active):hover { border-color: var(--gold); color: var(--text); }
-
-  .category-toggle {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .category-btn {
-    flex: 1;
-    padding: 0.7rem 0.5rem;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.15s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    line-height: 1.1;
-  }
-
-  .category-btn .cat-icon {
-    font-size: 1.4rem;
-    line-height: 1;
-  }
-
-  .category-btn.active {
-    background: var(--gold);
-    color: #0d0d0d;
-    border-color: var(--gold);
-  }
-
-  .category-btn:not(.active):hover {
-    border-color: var(--gold);
-    color: var(--text);
-  }
-
-  .era-filter {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    animation: era-reveal 0.2s ease-out;
-  }
-
-  @keyframes era-reveal {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .era-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .era-btn {
-    padding: 0.4rem 0.7rem;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-dim);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    cursor: pointer;
-    border-radius: 12px;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-
-  .era-btn.active {
-    background: var(--gold);
-    color: #0d0d0d;
-    border-color: var(--gold);
-  }
-
-  .era-btn:not(.active):hover {
-    border-color: var(--gold);
-    color: var(--text);
-  }
-
-  .btn-primary {
-    background: var(--gold);
-    color: #0d0d0d;
-    border: none;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 0.15em;
-    padding: 0.8rem 2rem;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.15s;
-    width: 100%;
-  }
-
-  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
-  .btn-primary:active { transform: translateY(0); }
-
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--text-dim);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    margin: 0.5rem 0;
-  }
-
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  /* ── BOARD SCREEN ── */
-  #board-screen {
-    background: var(--bg);
-  }
-
-  .board-header {
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    align-items: center;
-    padding: 0.6rem 1rem;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    gap: 0.6rem 1rem;
-  }
-
-  .board-header .score-display { justify-self: center; }
-  .board-header .turn-indicator { justify-self: end; }
-
-  @media (max-width: 720px) {
-    .board-header {
-      grid-template-columns: 1fr auto;
-      grid-template-areas:
-        "room actions"
-        "score score"
-        "turn turn";
-      row-gap: 0.5rem;
-    }
-    .board-header > .room-badge { grid-area: room; justify-self: start; }
-    .board-header > .header-actions { grid-area: actions; justify-self: end; }
-    .board-header > .score-display { grid-area: score; justify-self: center; }
-    .board-header > .turn-indicator { grid-area: turn; justify-self: center; }
-  }
-
-  .room-badge {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-  }
-
-  .room-badge span { color: var(--gold); font-size: 1.1rem; }
-
-  .score-display {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-  }
-
-  .score-team {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    line-height: 1;
-  }
-
-  .score-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-  }
-
-  .score-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-
-  .score-team.red .score-num { color: var(--red-light); }
-  .score-team.blue .score-num { color: var(--blue-light); }
-
-  .turn-indicator {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.1em;
-    padding: 0.3rem 0.8rem;
-    border-radius: 2px;
-    border: 1px solid currentColor;
-  }
-
-  .turn-indicator.red { color: var(--red-light); border-color: var(--red); }
-  .turn-indicator.blue { color: var(--blue-light); border-color: var(--blue); }
-
-  .header-actions { display: flex; gap: 0.5rem; }
-
-  .btn-sm {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.4rem 0.8rem;
-    cursor: pointer;
-    border-radius: 2px;
-    transition: all 0.15s;
-  }
-
-  .btn-sm:hover { border-color: var(--gold); color: var(--text); }
-  .btn-sm.danger:hover { border-color: var(--red-light); color: var(--red-light); }
-
-  /* ── GRID ── */
-  .grid-wrap {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 900px;
-  }
-
-  .card {
-    aspect-ratio: 3/2;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.15s;
-    user-select: none;
-  }
-
-  .card:hover:not(.revealed) { border-color: var(--gold); transform: scale(1.02); }
-  .card:active:not(.revealed) { transform: scale(0.98); }
-
-  .card-word {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(1.1rem, 3vw, 1.7rem);
-    letter-spacing: 0.06em;
-    color: var(--text);
-    text-align: center;
-    padding: 0.2rem;
-    transition: color 0.2s;
-    z-index: 1;
-    line-height: 1.05;
-    word-break: break-word;
-    hyphens: auto;
-  }
-
-  /* Adaptive sizing for long titles on the main board */
-  .card[data-len="long"] .card-word { font-size: clamp(0.95rem, 2.4vw, 1.35rem); }
-  .card[data-len="xlong"] .card-word { font-size: clamp(0.75rem, 1.9vw, 1.05rem); letter-spacing: 0.02em; }
-
-  /* Spymaster overlay (colored background hint) */
-  .card.spy-red { border-color: rgba(192,57,43,0.6); background: rgba(192,57,43,0.15); }
-  .card.spy-blue { border-color: rgba(41,128,185,0.5); background: rgba(41,128,185,0.15); }
-  .card.spy-assassin { border-color: rgba(30,30,30,0.9); background: rgba(10,10,10,0.6); }
-  .card.spy-bystander { border-color: rgba(212,184,150,0.4); background: rgba(212,184,150,0.08); }
-
-  /* Revealed states */
-  .card.revealed { cursor: default; }
-  .card.revealed:hover { transform: none; border-color: var(--border); }
-
-  .card.revealed-red {
-    background: var(--red);
-    border-color: var(--red-light);
-  }
-
-  .card.revealed-red .card-word { color: white; }
-
-  .card.revealed-blue {
-    background: var(--blue);
-    border-color: var(--blue-light);
-  }
-
-  .card.revealed-blue .card-word { color: white; }
-
-  .card.revealed-bystander {
-    background: var(--bystander-dark);
-    border-color: var(--bystander);
-  }
-
-  .card.revealed-bystander .card-word { color: #2d1a00; }
-
-  .card.revealed-assassin {
-    background: #111;
-    border-color: #333;
-  }
-
-  .card.revealed-assassin .card-word { color: #555; }
-
-  .card.revealed-assassin::after {
-    content: '✕';
-    position: absolute;
-    font-size: 2rem;
-    color: #333;
-    font-family: sans-serif;
-  }
-
-  .card-badge {
-    position: absolute;
-    top: 4px; right: 4px;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-  }
-
-  .spy-red .card-badge { background: var(--red-light); }
-  .spy-blue .card-badge { background: var(--blue-light); }
-  .spy-assassin .card-badge { background: #555; }
-
-  /* ── SPYMASTER SCREEN ── */
-  #spy-screen {
-    background: var(--bg);
-  }
-
-  .spy-header {
-    padding: 0.6rem 0.8rem;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.5rem 0.8rem;
-    align-items: center;
-  }
-
-  .spy-header-top {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-    min-width: 0;
-  }
-
-  .spy-header-actions {
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
-  .spy-header-bottom {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  @media (min-width: 600px) {
-    .spy-header {
-      grid-template-columns: auto 1fr auto auto;
-    }
-    .spy-header-bottom {
-      grid-column: auto;
-      justify-content: flex-end;
-      gap: 1rem;
-    }
-  }
-
-  .spy-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
-    letter-spacing: 0.15em;
-  }
-
-  .spy-title.red { color: var(--red-light); }
-  .spy-title.blue { color: var(--blue-light); }
-
-  .spy-grid-wrap {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.6rem;
-  }
-
-  .spy-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  @media (min-width: 600px) {
-    .spy-grid { max-width: 480px; }
-    .spy-grid-wrap { padding: 1rem; }
-  }
-
-  .spy-cell {
-    aspect-ratio: 1;
-    border-radius: 3px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(0.7rem, 2.8vw, 1.05rem);
-    letter-spacing: 0.04em;
-    text-align: center;
-    padding: 3px;
-    border: 1px solid transparent;
-    position: relative;
-    transition: opacity 0.3s;
-    gap: 1px;
-  }
-
-  .spy-cell.type-red { background: var(--red); color: white; border-color: var(--red-light); }
-  .spy-cell.type-blue { background: var(--blue); color: white; border-color: var(--blue-light); }
-  .spy-cell.type-assassin { background: #111; color: #555; border-color: #333; }
-  .spy-cell.type-bystander { background: var(--bystander-dark); color: #2d1a00; border-color: var(--bystander); }
-  .spy-cell.done { opacity: 0.35; }
-  .spy-cell.done .spy-word { text-decoration: line-through; opacity: 0.5; }
-  .spy-cell.done::before {
-    content: '✓';
-    position: absolute;
-    top: 2px; right: 4px;
-    font-size: 0.75em;
-    color: rgba(255,255,255,0.7);
-    font-family: sans-serif;
-    line-height: 1;
-  }
-
-  /* Word label centered inside cell */
-  .spy-word {
-    font-size: clamp(0.95rem, 3.6vw, 1.25rem);
-    text-align: center;
-    overflow: hidden;
-    width: 100%;
-    padding: 0 2px;
-    opacity: 1;
-    line-height: 1.05;
-    letter-spacing: 0.02em;
-    /* Allow wrapping for multi-word titles, with bounded line count */
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    word-break: break-word;
-    hyphens: auto;
-  }
-
-  /* Auto-shrink the word in cells that hold longer titles */
-  .spy-cell[data-len="long"] .spy-word { font-size: clamp(0.7rem, 2.6vw, 0.95rem); }
-  .spy-cell[data-len="xlong"] .spy-word { font-size: clamp(0.55rem, 2.1vw, 0.8rem); }
-
-  .spy-legend {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    padding: 0.8rem 1rem;
-    border-top: 1px solid var(--border);
-    background: var(--surface);
-    flex-wrap: wrap;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    letter-spacing: 0.05em;
-  }
-
-  .legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .legend-dot.red { background: var(--red-light); }
-  .legend-dot.blue { background: var(--blue-light); }
-  .legend-dot.assassin { background: #333; border: 1px solid #555; }
-  .legend-dot.bystander { background: var(--bystander-dark); }
-
-  /* ── OVERLAY / MODALS ── */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 1rem;
-  }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 2rem;
-    max-width: 400px;
-    width: 100%;
-    text-align: center;
-  }
-
-  .modal h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-  }
-
-  .modal h2.red { color: var(--red-light); }
-  .modal h2.blue { color: var(--blue-light); }
-  .modal h2.assassin { color: #888; }
-
-  .modal p { color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.5; }
-
-  .modal-btns { display: flex; gap: 0.5rem; align-items: stretch; }
-  .modal-btns .btn-sm { padding: 0.6rem 0.8rem; font-size: 0.85rem; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 1.5rem; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--surface);
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.9rem;
-    letter-spacing: 0.15em;
-    padding: 0.6rem 1.5rem;
-    border-radius: 2px;
-    transition: transform 0.3s;
-    z-index: 200;
-    white-space: nowrap;
-  }
-
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* ── JOIN FORM IN SPYMASTER ── */
-  .join-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    gap: 1.2rem;
-    text-align: center;
-  }
-
-  .join-wrap h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.1em;
-    color: var(--gold-light);
-  }
-
-  .badge-team {
-    display: inline-block;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.15em;
-    padding: 0.2rem 0.8rem;
-    border-radius: 2px;
-  }
-
-  .badge-team.red { background: var(--red); color: white; }
-  .badge-team.blue { background: var(--blue); color: white; }
-
-  /* ── HINT BAR ── */
-  .hint-bar {
-    padding: 0.5rem 1rem;
-    background: var(--surface2);
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    letter-spacing: 0.05em;
-  }
-
-  .hint-bar span { color: var(--gold); }
-
-  /* Responsive */
-  @media (max-width: 480px) {
-    .board-header { padding: 0.4rem 0.6rem; }
-    .grid-wrap { padding: 0.4rem; }
-    .grid { gap: 0.3rem; }
-    .card-word { font-size: 0.65rem; }
-    .score-num { font-size: 1.5rem; }
-  }
-</style>
-</head>
-<body>
-
-<!-- ══════════════════ HOME SCREEN ══════════════════ -->
-<div id="home" class="screen active">
-  <div class="logo-wrap">
-    <div class="logo-eye"></div>
-    <h1 class="title">Code<br>names<span>field operations</span></h1>
-  </div>
-
-  <div class="home-cards">
-    <div class="mode-card neutral-card" onclick="showSection('new-game')">
-      <div class="mode-icon">🗺️</div>
-      <div class="mode-title">New Game</div>
-      <div class="mode-desc">Start a new mission. Share the room code with your spymasters.</div>
-    </div>
-    <div class="mode-card red-card" onclick="showSection('join-spy')">
-      <div class="mode-icon">🔐</div>
-      <div class="mode-title">Spymaster View</div>
-      <div class="mode-desc">Enter a room code to see your team's secret key card.</div>
-    </div>
-  </div>
-
-  <!-- New Game section -->
-  <div id="section-new-game" class="home-section" style="display:none;">
-    <p class="field-label">Word Pack</p>
-    <div class="category-toggle">
-      <button class="category-btn active" id="cat-words" onclick="selectCategory('words')">
-        <span class="cat-icon">📝</span>
-        <span class="cat-label">English Words</span>
-      </button>
-      <button class="category-btn" id="cat-movies" onclick="selectCategory('movies')">
-        <span class="cat-icon">🎬</span>
-        <span class="cat-label">Telugu Movies</span>
-      </button>
-    </div>
-    <div id="era-filter" class="era-filter" style="display:none;">
-      <p class="field-label">Era</p>
-      <div class="era-chips">
-        <button class="era-btn active" data-era="all" onclick="selectEra('all')">All</button>
-        <button class="era-btn" data-era="classics" onclick="selectEra('classics')">Classics</button>
-        <button class="era-btn" data-era="2000plus" onclick="selectEra('2000plus')">2000s+</button>
-        <button class="era-btn" data-era="2010plus" onclick="selectEra('2010plus')">2010s+</button>
-        <button class="era-btn" data-era="2020only" onclick="selectEra('2020only')">2020s only</button>
-      </div>
-    </div>
-    <p class="field-label" style="margin-top:0.4rem;">Room Code (4 letters — share with spymasters)</p>
-    <input type="text" id="room-code-input" maxlength="6" placeholder="AUTO" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z]/g,'')">
-    <p class="hint-text">Leave blank to generate automatically</p>
-    <button class="btn-primary" onclick="startNewGame()">▶ Launch Mission</button>
-    <button class="btn-sm back-btn" onclick="hideSection('new-game')">← Back</button>
-  </div>
-
-  <!-- Join as Spymaster section -->
-  <div id="section-join-spy" class="home-section" style="display:none;">
-    <p class="field-label">Room Code</p>
-    <input type="text" id="spy-room-input" maxlength="8" placeholder="ENTER" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
-    <p class="field-label" style="margin-top:0.4rem;">Your Team</p>
-    <div class="team-toggle">
-      <button class="team-btn red" id="btn-red" onclick="selectTeam('red')">🔴 Red</button>
-      <button class="team-btn blue" id="btn-blue" onclick="selectTeam('blue')">🔵 Blue</button>
-    </div>
-    <button class="btn-primary" onclick="joinAsSpy()">🔑 View Key Card</button>
-    <button class="btn-sm back-btn" onclick="hideSection('join-spy')">← Back</button>
-  </div>
-
-  <p class="tagline" style="margin-top: 2rem;">Offline · No account · No internet needed</p>
-  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" style="margin-top:1rem;">🌓</button>
-</div>
-
-<!-- ══════════════════ BOARD SCREEN ══════════════════ -->
-<div id="board-screen" class="screen">
-  <div class="board-header">
-    <div class="room-badge">ROOM: <span id="display-room-code">----</span></div>
-    <div class="score-display">
-      <div class="score-team red">
-        <div class="score-num" id="red-remaining">0</div>
-        <div class="score-label">Red</div>
-      </div>
-      <div class="score-team blue">
-        <div class="score-num" id="blue-remaining">0</div>
-        <div class="score-label">Blue</div>
-      </div>
-    </div>
-    <div class="turn-indicator" id="turn-badge">RED's TURN</div>
-    <div class="header-actions">
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
-      <button class="btn-sm" onclick="endTurn()">End Turn</button>
-      <button class="btn-sm danger" onclick="confirmNewGame()">New</button>
-      <button class="btn-sm" onclick="goHome()">Exit</button>
-    </div>
-  </div>
-  <div class="grid-wrap">
-    <div class="grid" id="main-grid"></div>
-  </div>
-  <div class="hint-bar">
-    📡 Spymasters: open this game on your device and enter room code <span id="hint-code"></span>
-  </div>
-</div>
-
-<!-- ══════════════════ SPYMASTER SCREEN ══════════════════ -->
-<div id="spy-screen" class="screen">
-  <div class="spy-header">
-    <div class="spy-header-top">
-      <div class="spy-title" id="spy-team-title">SPYMASTER</div>
-      <div class="room-badge">ROOM: <span id="spy-display-code">----</span></div>
-    </div>
-    <div class="spy-header-actions">
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌓</button>
-      <button class="btn-sm" onclick="goHome()">Exit</button>
-    </div>
-    <div class="spy-header-bottom">
-      <div class="score-display">
-        <div class="score-team red">
-          <div class="score-num" id="spy-red-remaining">0</div>
-          <div class="score-label">Red</div>
-        </div>
-        <div class="score-team blue">
-          <div class="score-num" id="spy-blue-remaining">0</div>
-          <div class="score-label">Blue</div>
-        </div>
-      </div>
-      <div class="turn-indicator" id="spy-turn-badge">RED's TURN</div>
-    </div>
-  </div>
-  <div class="spy-grid-wrap">
-    <div class="spy-grid" id="spy-key-grid"></div>
-  </div>
-  <div class="spy-legend">
-    <div class="legend-item"><div class="legend-dot red"></div> Red agents</div>
-    <div class="legend-item"><div class="legend-dot blue"></div> Blue agents</div>
-    <div class="legend-item"><div class="legend-dot bystander"></div> Bystanders</div>
-    <div class="legend-item"><div class="legend-dot assassin"></div> Assassin</div>
-  </div>
-</div>
-
-<!-- ══════════════════ WINNER MODAL ══════════════════ -->
-<div class="modal-overlay" id="winner-modal" style="display:none;">
-  <div class="modal">
-    <h2 id="winner-title" class="red">RED WINS</h2>
-    <p id="winner-msg">All red agents have been found. Mission accomplished!</p>
-    <div class="modal-btns">
-      <button class="btn-primary" onclick="startNewGame(true)" style="flex:1;">New Game</button>
-      <button class="btn-sm" onclick="document.getElementById('winner-modal').style.display='none'" style="flex:1;">Review Board</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// ══════════════════════════════════════════════════════
-// WORD LISTS
-// ══════════════════════════════════════════════════════
-const WORDS = [
-  "AFRICA","AGENT","AIR","ALIEN","ALPS","AMAZON","ANGEL","ANTARCTICA","APPLE","ARM",
-  "BACK","BALL","BAND","BANK","BAR","BARK","BAT","BATTERY","BEACH","BEAR",
-  "BEAT","BED","BELL","BELT","BERLIN","BILL","BLOCK","BOARD","BOLT","BOMB",
-  "BOND","BOOM","BOOT","BOTTLE","BOW","BOX","BRIDGE","BUCK","BUG","BUGLE",
-  "BUNKER","BUSH","BUTTON","CAP","CAPITAL","CAR","CARD","CAST","CAT","CELL",
-  "CHAIR","CHANGE","CHARGE","CHECK","CHEST","CHICKEN","CHICK","CHINA","CHOCOLATE","CIRCLE",
-  "CLIFF","CLUB","COAT","CODE","COLD","COLUMN","COMPOUND","CONDUCTOR","CONTRACT","COOK",
-  "COPPER","COTTON","COURT","COVER","CRANE","CRASH","CROSS","CROWN","CYCLE","CZECH",
-  "DANCE","DATE","DAY","DEATH","DECK","DEGREE","DIAMOND","DICE","DINOSAUR","DISEASE",
-  "DOCTOR","DOG","DOOR","DRAFT","DRAGON","DRESS","DRILL","DRIVE","DRUM","DUCK",
-  "DUST","EAGLE","EAR","EARTH","EGG","EGYPT","ENGINE","EUROPE","EYE","FACE",
-  "FAIR","FALL","FAN","FENCE","FIELD","FILE","FILM","FIRE","FISH","FLUTE",
-  "FLY","FOOT","FORCE","FOREST","FORK","FRANCE","FREEZE","FROG","FUEL","GAME",
-  "GAS","GENIUS","GERMANY","GHOST","GIANT","GLASS","GLOVE","GOLD","GRACE","GRASS",
-  "GREECE","GREEN","GROUND","GUN","HAMMER","HAND","HAM","HAWK","HEAD","HEART",
-  "HELICOPTER","HIMALAYAS","HOLE","HOLLYWOOD","HOOK","HORN","HORSE","HOSPITAL","HOTEL","ICE",
-  "INDIA","IRON","IVORY","JAM","JAPAN","JET","JUDGE","JUPITER","KANGAROO","KIWI",
-  "KNIFE","KNIGHT","LAB","LAMP","LASER","LAWYER","LEAD","LEATHER","LEMON","LEPRECHAUN",
-  "LIFE","LIGHT","LIMOUSINE","LINE","LINK","LION","LOCH NESS","LOG","LONDON","LUCK",
-  "MAIL","MAMMOTH","MAN","MAP","MARBLE","MARCH","MATCH","MERCURY","MEXICO","MINE",
-  "MISSILE","MOLE","MOON","MOSCOW","MOUTH","MUMMY","NAIL","NEEDLE","NET","NEW YORK",
-  "NIGHT","NINJA","NOTE","NUT","OIL","OLIVE","OLYMPUS","OPERA","ORANGE","ORBIT",
-  "ORGAN","PALM","PAN","PAPER","PARK","PART","PASS","PASTE","PENGUIN","PIANO",
-  "PIE","PILOT","PIN","PIPE","PIRATE","PISTOL","PITCH","PLANE","PLANT","PLATE",
-  "PLATYPUS","PLAY","PLOT","POINT","POISON","POLAR BEAR","POLICE","POOL","PORT","POST",
-  "POUND","PRESS","PRINCESS","PRISON","PROFESSOR","PUMP","PUMPKIN","PUPIL","PYRAMID","QUEEN",
-  "RABBIT","RACKET","RAY","RING","ROCK","ROME","ROOT","ROSE","ROUND","RUBBER",
-  "RUSSIA","SATELLITE","SATURN","SCHOOL","SCIENTIST","SCORPION","SCREEN","SCUBA DIVER","SEAL","SERVER",
-  "SHADOW","SHARK","SHIP","SHOE","SHOT","SINK","SLAVE","SLIP","SMUGGLER","SNAKE",
-  "SNOW","SOCK","SOLDIER","SOUL","SOUND","SPACE","SPELL","SPIDER","SPIKE","SPINE",
-  "SPOT","SPRING","SPY","SQUARE","STAFF","STAR","STATE","STICK","STRAW","STREAM",
-  "STRIKE","STUDENT","SUB","SUIT","SUPER","SUPERHERO","SWITCH","TABLE","TANK","TEACHER",
-  "TELESCOPE","TIME","TIP","TOKYO","TOOTH","TORCH","TOWER","TRACK","TRAIN","TRIP",
-  "TRUNK","TUBE","TURKEY","UNDERTAKER","UNICORN","VAN","VENUS","VICE","WAKE","WALL",
-  "WAR","WASHINGTON","WATCH","WAVE","WEB","WELL","WHALE","WITCH","WIZARD","WORM"
-];
-
-// Telugu Movies (Tollywood) — 323 unique titles, bucketed by era
-// Active pool is built by combining selected eras (see MOVIE_ERA_POOLS)
-const MOVIES_CLASSICS = [
-  "MAYABAZAR","PATHALA BHAIRAVI","DEVADASU","MISSAMMA","GUNDAMMA KATHA","LAVAKUSA",
-  "NARTANASALA","DANA VEERA SURA KARNA","ADIVI RAMUDU","VETAGADU","DRIVER RAMUDU","RAM ROBERT RAHIM",
-  "BHAKTHA PRAHLADA","BANGARU PAPA","SAMSARAM","PELLI CHESI CHOODU","MOOGA MANASULU","KANYASULKAM",
-  "CHENCHU LAKSHMI","BHOOKAILAS","JAGADEKA VEERUDU","DONGA RAMUDU","MAYA NETHRI","DEVATA",
-  "BANDIPOTU","DAGUDU MOOTHALU","VARASATWAM","JAYABHERI","SIRI SAMPADALU","TODI KODALLU",
-  "MAALA PILLA","UMA SUNDARI","PELLI SANDADI","JEEVITHA CHAKRAM","PRATIGYA","SAMPRAPTHI",
-  "GUDACHARI 116","YAMAGOLA","ADAVI RAMUDU","SANKARABHARANAM","SAGARA SANGAMAM","SWATHI MUTYAM",
-  "SWAYAM KRUSHI","RUDRAVEENA","SAPTAPADI","SIRIVENNELA","SIRI SIRI MUVVA","KHAIDI",
-  "BOBBILI PULI","SIMHASANAM","CHALLENGE","AAKHARI POARATAM","KOKILAMMA","STATE RAOWDY",
-  "MAHARSHI","SUTRADHARULU","CHITRAM BHALARE VICHITRAM","AAKALI RAJYAM","SARDAR PAAPA RAYUDU","AJEYA",
-  "KONDAVEETI DONGA","NIPPULANTI MANISHI","PRESIDENT GARI PELLAM","MAGAADU","ANTULU LENI KATHA","BOTTU",
-  "MOSAGADU","PADAHARELLA VAYASU","ALLU RAMA LINGAIAH","ABHILASHA","JUSTICE CHAUDHARY","SARDAAR PAPARAYUDU",
-  "GHARANA MOGUDU","BOBBILI RAJA","ROJA","BOMBAY","NUVVE KAVALI","NUVVU NAAKU NACHAV",
-  "PREMIKULA ROJU","TAJ MAHAL","MANMADHUDU","MURARI","NINNE PELLADATHA","SHOWMAN",
-  "SUBHALAGNAM","HITLER","SAMARA SIMHA REDDY","NARASIMHA NAIDU","INDRA","CHOODALANI VUNDI",
-  "ANANDAM","ANTAHPURAM","SHIVA","GAAYAM","GANG LEADER","ALLUDA MAJAKA",
-  "PEDARAYUDU","ANNAMAYYA","SRI KRISHNARJUNA YUDHAM","SWARNA KAMALAM","SUBHA SANKALPAM","BHARATHIYUDU",
-  "BAVAGARU BAGUNNARA","CHANDRALEKHA","CHIRUNAVVUTHO","KHADGAM","SISINDRI","NIRNAYAM",
-  "GENTLEMAN","SREE","TAMMUDU","JODI","PRINCE","MUTAMESTRI",
-  "SAMARASIMHA REDDY","MANCHI MANUSHULU","VAARASUDU","ARDHANGI","RAYUDU","CHITTI ABBAYI",
-  "KUTUMBA GOWRAVAM","ROWDY ALLUDU","TANIKELLA","KSHANA KSHANAM"
-];
-
-const MOVIES_2000S = [
-  "OKKADU","ATHADU","POKIRI","JALSA","ARJUN","ARYA",
-  "ARYA 2","BUNNY","HAPPY","DESAMUDURU","PARUGU","NUVVOSTANANTE NENODDANTANI",
-  "BOMMARILLU","GODAVARI","ANAND","NUVVU NENU","DIL","SYE",
-  "CHATRAPATI","STALIN","BANGARAM","YAMADONGA","SAINIKUDU","ATHIDHI",
-  "GAMYAM","KANTRI","KING","TAGORE","BOSS","SHANKAR DADA MBBS",
-  "SHOCK","SUNDARAKANDA","BUDDHA","VIKRAMARKUDU","ASHOK","CHIRUTHA",
-  "BHALEVADIVI BASU","KICK","CHENNAKESAVA REDDY","SANDADE SANDADI","VEEDU","RAKHI",
-  "BILLA","KOMARAM PULI","SIMHADRI","NAYAK","ANUKOKUNDA OKA ROJU","NIJAM",
-  "SANTOSHAM","STUDENT NO 1","VENKY","CHEPALA POOLA STORY","DEVI PUTRUDU","NANI",
-  "AVAKAYI BIRYANI","ANUKOKKUNDA","ULTIMATE STAR","SONTHAMOORA","PILLA","TULASI",
-  "ATHANOKKADE","GHARSHANA","MAGADU","TAKKARI DONGA","ROBO","HOMAM",
-  "EE ROJULLO","ONE OK","MAGADHEERA"
-];
-
-const MOVIES_2010S = [
-  "EEGA","BAAHUBALI","BAAHUBALI 2","SRIMANTHUDU","BHAARAT ANE NENU","RANGASTHALAM",
-  "ATHARINTIKI DAAREDI","JULAYI","DOOKUDU","BUSINESSMAN","RACE GURRAM","SARRAINODU",
-  "TEMPER","JANATHA GARAGE","KHAIDI NO 150","SARDAAR GABBAR SINGH","NANNAKU PREMATHO","BRUCE LEE",
-  "BABU BANGARAM","OOPIRI","A AA","SARILERU NEEKEVVARU","ALA VAIKUNTHAPURRAMULOO","VENKATADRI EXPRESS",
-  "SOGGADE CHINNI NAYANA","MIRCHI","RAMAYYA VASTHAVAYYA","RABHASA","AAGADU","LOUKYAM",
-  "GOVINDUDU ANDARIVADELE","MANAM","RACHA","NUVVILA","DHADA","GABBAR SINGH",
-  "BADRINATH","BODYGUARD","SHIRDI SAI","ENDUKANTE PREMANTA","KICK 2","LEGEND",
-  "RUDHRAMADEVI","SOUKHYAM","SIZE ZERO","DICTATOR","NENU LOCAL","KATAMARAYUDU",
-  "DUVVADA JAGANNADHAM","SPYDER","JAI LAVA KUSA","FIDAA","ARJUN REDDY","PELLI CHOOPULU",
-  "KSHANAM","GHAZI","BHAAGAMATHIE","TAXIWALA","AGENT SAI SRINIVASA ATHREYA","MAJILI",
-  "JERSEY","DEAR COMRADE","EVARU","MATHU VADALARA","COLOUR PHOTO","RACE",
-  "NUVVANTE NAKISHTAM","VEDAM"
-];
-
-const MOVIES_2020S = [
-  "RRR","PUSHPA","PUSHPA 2","SALAAR","HI NANNA","KGF",
-  "JATHI RATNALU","UPPENA","LOVE STORY","SHYAM SINGHA ROY","AKHANDA","BHEEMLA NAYAK",
-  "DJ TILLU","TILLU SQUARE","KARTHIKEYA 2","HANU MAN","KALKI","DEVARA",
-  "GAME CHANGER","SITA RAMAM","MAJOR","BIMBISARA","VIRUPAKSHA","BABY",
-  "BALAGAM","DASARA","BHOLAA SHANKAR","WALTAIR VEERAYYA","RAVANASURA","VEERA SIMHA REDDY",
-  "VAATHI","KUSHI","SKANDA","BRO","MAD","MAX",
-  "18 PAGES","RADHE SHYAM","ACHARYA","NAANDHI","DRUSHYAM 2","GANGUBAI",
-  "BHAGAVANTH KESARI","TIGER NAGESWARA RAO","EAGLE","EXTRA","SARKARU VAARI PAATA","KRACK",
-  "VAKEEL SAAB","NARAPPA","REKKA","SOLO BRATHUKE SO BETTER","KILLER SOUP","GOODACHARI",
-  "SAINDHAV","SAMAJAVARAGAMANA","TUCK JAGADISH","CHECK","SHAAKUNTALAM","MAESTRO",
-  "MANCHI ROJULOCHAYI","DRINKER SAI"
-];
-
-// All movies combined (default when era = "all")
-const MOVIES = [...MOVIES_CLASSICS, ...MOVIES_2000S, ...MOVIES_2010S, ...MOVIES_2020S];
-
-// Era key → pool of movies (built lazily so the combined arrays are correct)
-const MOVIE_ERA_POOLS = {
-  "all":      MOVIES,                                                // MA-XXXX
-  "classics": MOVIES_CLASSICS,                                       // M9-XXXX (pre-2000s)
-  "2000plus": [...MOVIES_2000S, ...MOVIES_2010S, ...MOVIES_2020S],   // M0-XXXX
-  "2010plus": [...MOVIES_2010S, ...MOVIES_2020S],                    // M1-XXXX
-  "2020only": MOVIES_2020S                                           // M2-XXXX
-};
-
-function pickWordPool(category, era) {
-  if (category !== 'movies') return WORDS;
-  return MOVIE_ERA_POOLS[era] || MOVIES;
-}
-
-// Maps the single-char era code (after 'M') to an era key
-const ERA_CODE_TO_KEY = {
-  'A': 'all',      // MA-XXXX
-  '9': 'classics', // M9-XXXX (pre-2000s)
-  '0': '2000plus', // M0-XXXX
-  '1': '2010plus', // M1-XXXX
-  '2': '2020only', // M2-XXXX
-};
-const ERA_KEY_TO_CODE = Object.fromEntries(Object.entries(ERA_CODE_TO_KEY).map(([k, v]) => [v, k]));
-
-// ══════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════
-let gameState = null;
-let selectedTeam = 'red';
-let selectedCategory = 'words';  // 'words' or 'movies'
-let selectedEra = 'all';         // 'all', 'classics', '2000plus', '2010plus', '2020only'
-let spyRoomCode = null;
-let pollInterval = null;
-
-function selectCategory(cat) {
-  selectedCategory = cat;
-  document.getElementById('cat-words').classList.toggle('active', cat === 'words');
-  document.getElementById('cat-movies').classList.toggle('active', cat === 'movies');
-  // Inline reveal of era filter only when Movies is active
-  const eraFilter = document.getElementById('era-filter');
-  if (eraFilter) eraFilter.style.display = (cat === 'movies') ? 'flex' : 'none';
-}
-
-function selectEra(era) {
-  selectedEra = era;
-  document.querySelectorAll('.era-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.era === era);
-  });
-}
-
-// ══════════════════════════════════════════════════════
-// THEME
-// ══════════════════════════════════════════════════════
-function toggleTheme() {
-  document.body.classList.toggle('light');
-  localStorage.setItem('cn_theme', document.body.classList.contains('light') ? 'light' : 'dark');
-}
-
-// Restore saved theme on load
-if (localStorage.getItem('cn_theme') === 'light') {
-  document.body.classList.add('light');
-}
-
-// ══════════════════════════════════════════════════════
-// SEEDED RANDOM
-// ══════════════════════════════════════════════════════
-function seedRandom(seed) {
-  let s = seed;
-  return function() {
-    s = (s * 1664525 + 1013904223) & 0xFFFFFFFF;
-    return (s >>> 0) / 0xFFFFFFFF;
-  };
-}
-
-function codeToSeed(code) {
-  let n = 0;
-  for (let i = 0; i < code.length; i++) {
-    n = n * 31 + code.charCodeAt(i);
-  }
-  return Math.abs(n);
-}
-
-function shuffle(arr, rng) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// Category and era are encoded as a 2-char prefix in the room code itself,
-// so spymasters joining with just the code automatically get the right pool.
-// Format: M<era>-XXXX  where <era> is A/9/0/1/2
-// Examples: MA-XKQP → all movies, M2-XKQP → 2020s only, ABCD → english words
-function parseRoomCode(code) {
-  if (typeof code === 'string' && code.length >= 3 && code[0] === 'M' && code[2] === '-') {
-    const eraChar = code[1];
-    const era = ERA_CODE_TO_KEY[eraChar];
-    if (era) return { category: 'movies', era };
-  }
-  return { category: 'words', era: null };
-}
-
-// Backward-compat helper for any callers that only need the category
-function getCategoryFromCode(code) {
-  return parseRoomCode(code).category;
-}
-
-// ══════════════════════════════════════════════════════
-// GAME GENERATION
-// ══════════════════════════════════════════════════════
-function generateGame(code) {
-  const rng = seedRandom(codeToSeed(code));
-  const { category, era } = parseRoomCode(code);
-  const pool = pickWordPool(category, era);
-  const words = shuffle(pool, rng).slice(0, 25);
-
-  // Randomly determine first turn using the seeded RNG
-  const firstTurn = rng() < 0.5 ? 'red' : 'blue';
-  const redTotal = firstTurn === 'red' ? 9 : 8;
-  const blueTotal = firstTurn === 'blue' ? 9 : 8;
-
-  // First team gets 9 cards, second gets 8, assassin 1, bystanders 7
-  const types = [
-    ...Array(redTotal).fill('red'),
-    ...Array(blueTotal).fill('blue'),
-    ...Array(1).fill('assassin'),
-    ...Array(7).fill('bystander')
-  ];
-  const shuffledTypes = shuffle(types, rng);
-
-  const cards = words.map((word, i) => ({
-    word,
-    type: shuffledTypes[i],
-    revealed: false
-  }));
-
-  return {
-    code,
-    category,
-    era,
-    cards,
-    turn: firstTurn,
-    redTotal,
-    blueTotal,
-    redRemaining: redTotal,
-    blueRemaining: blueTotal,
-    winner: null,
-    timestamp: Date.now()
-  };
-}
-
-// ══════════════════════════════════════════════════════
-// STORAGE
-// ══════════════════════════════════════════════════════
-function saveGame(state) {
-  localStorage.setItem('cn_game_' + state.code, JSON.stringify(state));
-}
-
-function loadGame(code) {
-  const raw = localStorage.getItem('cn_game_' + code);
-  return raw ? JSON.parse(raw) : null;
-}
-
-function randomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  let code = '';
-  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
-  return code;
-}
-
-// ══════════════════════════════════════════════════════
-// UI HELPERS
-// ══════════════════════════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function showSection(name) {
-  document.querySelectorAll('[id^="section-"]').forEach(s => s.style.display = 'none');
-  document.getElementById('section-' + name).style.display = 'block';
-  document.querySelectorAll('.home-cards').forEach(c => c.style.display = 'none');
-}
-
-function hideSection(name) {
-  document.getElementById('section-' + name).style.display = 'none';
-  document.querySelectorAll('.home-cards').forEach(c => c.style.display = 'flex');
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-function selectTeam(team) {
-  selectedTeam = team;
-  document.getElementById('btn-red').classList.toggle('active', team === 'red');
-  document.getElementById('btn-blue').classList.toggle('active', team === 'blue');
-}
-
-selectTeam('red');
-
-// ══════════════════════════════════════════════════════
-// BOARD RENDERING
-// ══════════════════════════════════════════════════════
-function renderBoard(state, isSpymaster = false) {
-  const grid = document.getElementById(isSpymaster ? 'spy-key-grid' : 'main-grid');
-  grid.innerHTML = '';
-
-  state.cards.forEach((card, idx) => {
-    const el = document.createElement('div');
-
-    if (isSpymaster) {
-      el.className = `spy-cell type-${card.type}${card.revealed ? ' done' : ''}`;
-      // Adaptive size hint for long titles (movies often run long)
-      const len = card.word.length;
-      if (len > 18) el.dataset.len = 'xlong';
-      else if (len > 11) el.dataset.len = 'long';
-      const wordEl = document.createElement('div');
-      wordEl.className = 'spy-word';
-      wordEl.textContent = card.word;
-      el.appendChild(wordEl);
-    } else {
-      el.className = 'card';
-      // Adaptive size hint for long titles
-      const len = card.word.length;
-      if (len > 18) el.dataset.len = 'xlong';
-      else if (len > 11) el.dataset.len = 'long';
-
-      if (card.revealed) {
-        el.classList.add('revealed', 'revealed-' + card.type);
-      } else {
-        // Board has NO spy hints — operatives don't see colors
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Codenames</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap");
+
+      :root {
+        --red: #c0392b;
+        --red-light: #e74c3c;
+        --blue: #1a5276;
+        --blue-light: #2980b9;
+        --neutral: #7f8c8d;
+        --assassin: #1a1a1a;
+        --bystander: #d4b896;
+        --bystander-dark: #b8986a;
+        --bg: #0d0d0d;
+        --surface: #1a1a1a;
+        --surface2: #242424;
+        --text: #e8e0d0;
+        --text-dim: #8a8070;
+        --gold: #c9a84c;
+        --gold-light: #f0c96e;
+        --border: #333;
       }
 
-      const wordEl = document.createElement('div');
-      wordEl.className = 'card-word';
-      wordEl.textContent = card.word;
-      el.appendChild(wordEl);
-
-      if (!card.revealed) {
-        el.addEventListener('click', () => revealCard(idx));
+      /* ── LIGHT THEME ── */
+      body.light {
+        --bg: #f0ece4;
+        --surface: #e8e2d8;
+        --surface2: #ddd8ce;
+        --text: #2a2218;
+        --text-dim: #7a6e5e;
+        --gold: #a07828;
+        --gold-light: #c49a3c;
+        --border: #c8c0b0;
+        --assassin: #2a2a2a;
+        --bystander: #c4a878;
+        --bystander-dark: #9a7c4e;
       }
-    }
 
-    grid.appendChild(el);
-  });
+      body.light #home {
+        background: radial-gradient(
+          ellipse at 50% 30%,
+          #e8dcc8 0%,
+          #f0ece4 70%
+        );
+      }
 
-  // Update score
-  const reds = state.cards.filter(c => c.type === 'red' && !c.revealed).length;
-  const blues = state.cards.filter(c => c.type === 'blue' && !c.revealed).length;
+      body.light #home::before {
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 39px,
+            rgba(160, 120, 40, 0.06) 40px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 39px,
+            rgba(160, 120, 40, 0.06) 40px
+          );
+      }
 
-  if (isSpymaster) {
-    document.getElementById('spy-red-remaining').textContent = reds;
-    document.getElementById('spy-blue-remaining').textContent = blues;
-    const spyTurn = document.getElementById('spy-turn-badge');
-    spyTurn.textContent = state.winner ? (state.winner.toUpperCase() + ' WINS') : (state.turn.toUpperCase() + "'S TURN");
-    spyTurn.className = 'turn-indicator ' + (state.winner || state.turn);
-  } else {
-    document.getElementById('red-remaining').textContent = reds;
-    document.getElementById('blue-remaining').textContent = blues;
-    const turnBadge = document.getElementById('turn-badge');
-    turnBadge.textContent = state.winner ? (state.winner.toUpperCase() + ' WINS!') : (state.turn.toUpperCase() + "'S TURN");
-    turnBadge.className = 'turn-indicator ' + (state.winner || state.turn);
-  }
-}
+      body.light input[type="text"] {
+        background: #fff;
+      }
 
-// ══════════════════════════════════════════════════════
-// ACTIONS
-// ══════════════════════════════════════════════════════
-function startNewGame(force = false) {
-  // Strip any existing M<x>- prefix the user might have pasted in
-  const input = document.getElementById('room-code-input').value.trim().toUpperCase().replace(/^M[A-Z0-9]-/, '');
-  const baseCode = input || randomCode();
-  let code;
-  if (selectedCategory === 'movies') {
-    const eraChar = ERA_KEY_TO_CODE[selectedEra] || 'A';
-    code = 'M' + eraChar + '-' + baseCode;
-  } else {
-    code = baseCode;
-  }
-  gameState = generateGame(code);
-  saveGame(gameState);
+      body.light .card:not(.revealed) {
+        background: #fff;
+      }
+      body.light .card-word {
+        color: var(--text);
+      }
+      body.light .revealed-bystander .card-word {
+        color: #fff;
+      }
+      body.light .revealed-assassin {
+        background: #2a2a2a;
+      }
+      body.light .revealed-assassin .card-word {
+        color: #666;
+      }
 
-  document.getElementById('display-room-code').textContent = code;
-  document.getElementById('hint-code').textContent = code;
-  renderBoard(gameState);
-  showScreen('board-screen');
-  hideSection('new-game');
-  document.getElementById('room-code-input').value = '';
+      body.light .spy-cell.type-bystander {
+        color: #5a3a10;
+      }
 
-  if (document.getElementById('winner-modal').style.display !== 'none') {
-    document.getElementById('winner-modal').style.display = 'none';
-  }
+      /* theme toggle button */
+      .theme-toggle {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        font-size: 1rem;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .theme-toggle:hover {
+        border-color: var(--gold);
+        color: var(--text);
+      }
 
-  showToast('ROOM: ' + code + ' — MISSION START');
-}
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-function revealCard(idx) {
-  if (!gameState || gameState.winner) return;
-  const card = gameState.cards[idx];
-  if (card.revealed) return;
+      body {
+        font-family: "Rajdhani", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
 
-  card.revealed = true;
-  const currentTurn = gameState.turn;
+      /* ── SCREENS ── */
+      .screen {
+        display: none;
+        min-height: 100vh;
+      }
+      .screen.active {
+        display: flex;
+        flex-direction: column;
+      }
 
-  if (card.type === 'assassin') {
-    gameState.winner = currentTurn === 'red' ? 'blue' : 'red';
-  } else if (card.type === 'red') {
-    gameState.redRemaining--;
-    if (gameState.redRemaining === 0) {
-      gameState.winner = 'red';
-    } else if (currentTurn !== 'red') {
-      gameState.turn = 'red';
-    }
-  } else if (card.type === 'blue') {
-    gameState.blueRemaining--;
-    if (gameState.blueRemaining === 0) {
-      gameState.winner = 'blue';
-    } else if (currentTurn !== 'blue') {
-      gameState.turn = 'blue';
-    }
-  } else {
-    // Bystander → always end current turn
-    gameState.turn = currentTurn === 'red' ? 'blue' : 'red';
-  }
+      /* ── HOME ── */
+      #home {
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(
+          ellipse at 50% 30%,
+          #1a1008 0%,
+          #0d0d0d 70%
+        );
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
 
-  saveGame(gameState);
-  renderBoard(gameState);
+      #home::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 39px,
+            rgba(201, 168, 76, 0.04) 40px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 39px,
+            rgba(201, 168, 76, 0.04) 40px
+          );
+        pointer-events: none;
+      }
 
-  if (gameState.winner) showWinner(gameState.winner, card.type === 'assassin');
-}
+      .logo-wrap {
+        margin-bottom: 2.5rem;
+        position: relative;
+      }
 
-function endTurn() {
-  if (!gameState || gameState.winner) return;
-  gameState.turn = gameState.turn === 'red' ? 'blue' : 'red';
-  saveGame(gameState);
-  renderBoard(gameState);
-  showToast(gameState.turn.toUpperCase() + "'S TURN");
-}
+      .logo-eye {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 1rem;
+        border: 2px solid var(--gold);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        animation: pulse 3s ease-in-out infinite;
+      }
 
-function showWinner(team, byAssassin) {
-  const modal = document.getElementById('winner-modal');
-  const title = document.getElementById('winner-title');
-  const msg = document.getElementById('winner-msg');
-  title.textContent = team.toUpperCase() + ' WINS';
-  title.className = team;
-  msg.textContent = byAssassin
-    ? `The assassin was found! ${team.toUpperCase()} team wins by default.`
-    : `All ${team} agents have been contacted. Mission accomplished!`;
-  modal.style.display = 'flex';
-}
+      .logo-eye::after {
+        content: "";
+        width: 24px;
+        height: 24px;
+        background: var(--gold);
+        border-radius: 50%;
+      }
 
-function confirmNewGame() {
-  if (confirm('Start a new game? Current game will be lost.')) {
-    startNewGame(true);
-  }
-}
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 12px rgba(201, 168, 76, 0);
+        }
+      }
 
-function joinAsSpy() {
-  const code = document.getElementById('spy-room-input').value.trim().toUpperCase();
-  if (code.length < 2) { showToast('ENTER A ROOM CODE'); return; }
+      h1.title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(3rem, 10vw, 5.5rem);
+        letter-spacing: 0.08em;
+        color: var(--gold-light);
+        text-shadow: 0 0 40px rgba(201, 168, 76, 0.3);
+        line-height: 0.9;
+      }
 
-  // Try to load existing game; if not found, generate from code so it's deterministic
-  let state = loadGame(code);
-  if (!state) {
-    state = generateGame(code);
-    // Don't save — board device is the host
-  }
+      h1.title span {
+        color: var(--text-dim);
+        font-size: 0.4em;
+        display: block;
+        letter-spacing: 0.3em;
+      }
 
-  spyRoomCode = code;
-  gameState = state;
+      .tagline {
+        font-size: 0.9rem;
+        color: var(--text-dim);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-top: 0.5rem;
+      }
 
-  document.getElementById('spy-display-code').textContent = code;
-  const teamTitle = document.getElementById('spy-team-title');
-  teamTitle.textContent = selectedTeam.toUpperCase() + ' SPYMASTER';
-  teamTitle.className = 'spy-title ' + selectedTeam;
+      .home-cards {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        max-width: 600px;
+        margin-bottom: 2rem;
+      }
 
-  renderBoard(state, true);
-  showScreen('spy-screen');
-  hideSection('join-spy');
-  document.getElementById('spy-room-input').value = '';
+      .mode-card {
+        flex: 1;
+        min-width: 160px;
+        max-width: 260px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 1.5rem 1.2rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+      }
 
-  // Poll for updates
-  if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(() => {
-    const fresh = loadGame(code);
-    if (fresh && fresh.timestamp !== gameState.timestamp) {
-      gameState = fresh;
-      renderBoard(fresh, true);
-    }
-  }, 1000);
-}
+      .mode-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        transition: opacity 0.2s;
+        opacity: 0;
+      }
 
-function goHome() {
-  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
-  spyRoomCode = null;
-  showScreen('home');
-  document.querySelectorAll('[id^="section-"]').forEach(s => s.style.display = 'none');
-  document.querySelectorAll('.home-cards').forEach(c => c.style.display = 'flex');
-}
+      .mode-card.red-card::before {
+        background: var(--red-light);
+      }
+      .mode-card.blue-card::before {
+        background: var(--blue-light);
+      }
+      .mode-card.neutral-card::before {
+        background: var(--gold);
+      }
 
-// Re-render spy view when this tab gets focus (in case board changed)
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && spyRoomCode) {
-    const fresh = loadGame(spyRoomCode);
-    if (fresh) { gameState = fresh; renderBoard(fresh, true); }
-  }
-});
-</script>
-</body>
+      .mode-card:hover {
+        border-color: var(--gold);
+        transform: translateY(-2px);
+      }
+      .mode-card:hover::before {
+        opacity: 1;
+      }
+
+      .mode-icon {
+        font-size: 1.8rem;
+        margin-bottom: 0.8rem;
+      }
+      .mode-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: 0.05em;
+        margin-bottom: 0.3rem;
+      }
+      .mode-desc {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        line-height: 1.4;
+      }
+
+      .room-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+        max-width: 340px;
+      }
+
+      .home-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        width: 100%;
+        max-width: 340px;
+        text-align: left;
+      }
+
+      .home-section .btn-primary {
+        margin-top: 0.6rem;
+      }
+      .home-section .back-btn {
+        width: 100%;
+      }
+
+      .hint-text {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        margin-top: -0.3rem;
+      }
+
+      .field-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        margin-bottom: 0.3rem;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 0.15em;
+        padding: 0.6rem 0.8rem;
+        outline: none;
+        border-radius: 2px;
+        text-align: center;
+        text-transform: uppercase;
+        transition: border-color 0.2s;
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--gold);
+      }
+      input[type="text"]::placeholder {
+        color: var(--text-dim);
+        opacity: 0.4;
+      }
+
+      .team-toggle {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .team-btn {
+        flex: 1;
+        padding: 0.7rem;
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        color: var(--text-dim);
+        font-family: "Rajdhani", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.15s;
+      }
+
+      .team-btn.red.active {
+        background: var(--red);
+        border-color: var(--red-light);
+        color: white;
+      }
+      .team-btn.blue.active {
+        background: var(--blue);
+        border-color: var(--blue-light);
+        color: white;
+      }
+      .team-btn:not(.active):hover {
+        border-color: var(--gold);
+        color: var(--text);
+      }
+
+      .category-toggle {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .category-btn {
+        flex: 1;
+        padding: 0.6rem 0.3rem;
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        color: var(--text-dim);
+        font-family: "Rajdhani", sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.15s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.3rem;
+        line-height: 1.15;
+        text-align: center;
+        min-width: 0;
+      }
+
+      .category-btn .cat-icon {
+        font-size: 1.4rem;
+        line-height: 1;
+      }
+
+      .category-btn.active {
+        background: var(--gold);
+        color: #0d0d0d;
+        border-color: var(--gold);
+      }
+
+      .category-btn:not(.active):hover {
+        border-color: var(--gold);
+        color: var(--text);
+      }
+
+      .era-filter {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        animation: era-reveal 0.2s ease-out;
+      }
+
+      @keyframes era-reveal {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .era-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      .era-btn {
+        padding: 0.4rem 0.7rem;
+        border: 1px solid var(--border);
+        background: var(--surface2);
+        color: var(--text-dim);
+        font-family: "Rajdhani", sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+
+      .era-btn.active {
+        background: var(--gold);
+        color: #0d0d0d;
+        border-color: var(--gold);
+      }
+
+      .era-btn:not(.active):hover {
+        border-color: var(--gold);
+        color: var(--text);
+      }
+
+      .btn-primary {
+        background: var(--gold);
+        color: #0d0d0d;
+        border: none;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.2rem;
+        letter-spacing: 0.15em;
+        padding: 0.8rem 2rem;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.15s;
+        width: 100%;
+      }
+
+      .btn-primary:hover {
+        background: var(--gold-light);
+        transform: translateY(-1px);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--text-dim);
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        margin: 0.5rem 0;
+      }
+
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ── BOARD SCREEN ── */
+      #board-screen {
+        background: var(--bg);
+      }
+
+      .board-header {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        align-items: center;
+        padding: 0.6rem 1rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        gap: 0.6rem 1rem;
+      }
+
+      .board-header .score-display {
+        justify-self: center;
+      }
+      .board-header .turn-indicator {
+        justify-self: end;
+      }
+
+      @media (max-width: 720px) {
+        .board-header {
+          grid-template-columns: 1fr auto;
+          grid-template-areas:
+            "room actions"
+            "score score"
+            "turn turn";
+          row-gap: 0.5rem;
+        }
+        .board-header > .room-badge {
+          grid-area: room;
+          justify-self: start;
+        }
+        .board-header > .header-actions {
+          grid-area: actions;
+          justify-self: end;
+        }
+        .board-header > .score-display {
+          grid-area: score;
+          justify-self: center;
+        }
+        .board-header > .turn-indicator {
+          grid-area: turn;
+          justify-self: center;
+        }
+      }
+
+      .room-badge {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 0.85rem;
+        letter-spacing: 0.2em;
+        color: var(--text-dim);
+      }
+
+      .room-badge span {
+        color: var(--gold);
+        font-size: 1.1rem;
+      }
+
+      .score-display {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+      }
+
+      .score-team {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1;
+      }
+
+      .score-num {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2rem;
+      }
+
+      .score-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+
+      .score-team.red .score-num {
+        color: var(--red-light);
+      }
+      .score-team.blue .score-num {
+        color: var(--blue-light);
+      }
+
+      .turn-indicator {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.1em;
+        padding: 0.3rem 0.8rem;
+        border-radius: 2px;
+        border: 1px solid currentColor;
+      }
+
+      .turn-indicator.red {
+        color: var(--red-light);
+        border-color: var(--red);
+      }
+      .turn-indicator.blue {
+        color: var(--blue-light);
+        border-color: var(--blue);
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-sm {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        font-family: "Rajdhani", sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.15s;
+      }
+
+      .btn-sm:hover {
+        border-color: var(--gold);
+        color: var(--text);
+      }
+      .btn-sm.danger:hover {
+        border-color: var(--red-light);
+        color: var(--red-light);
+      }
+
+      /* ── GRID ── */
+      .grid-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 900px;
+      }
+
+      .card {
+        aspect-ratio: 3/2;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.15s;
+        user-select: none;
+      }
+
+      .card:hover:not(.revealed) {
+        border-color: var(--gold);
+        transform: scale(1.02);
+      }
+      .card:active:not(.revealed) {
+        transform: scale(0.98);
+      }
+
+      .card-word {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(1.1rem, 3vw, 1.7rem);
+        letter-spacing: 0.06em;
+        color: var(--text);
+        text-align: center;
+        padding: 0.2rem;
+        transition: color 0.2s;
+        z-index: 1;
+        line-height: 1.05;
+        word-break: break-word;
+        hyphens: auto;
+      }
+
+      /* Adaptive sizing for long titles on the main board */
+      .card[data-len="long"] .card-word {
+        font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+      }
+      .card[data-len="xlong"] .card-word {
+        font-size: clamp(0.75rem, 1.9vw, 1.05rem);
+        letter-spacing: 0.02em;
+      }
+
+      /* ── Pictures mode (official rules: 20 cards, 5x4) ── */
+      .grid.pictures-mode {
+        grid-template-columns: repeat(5, 1fr);
+        max-width: 1000px;
+      }
+
+      .card.pic {
+        aspect-ratio: 4/3;
+        padding: 0;
+        background: var(--surface2);
+      }
+
+      .card-pic {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition:
+          opacity 0.2s,
+          filter 0.2s;
+      }
+
+      /* Revealed picture cards: photo dims, team color floods over it */
+      .card.pic.revealed .card-pic {
+        opacity: 0.25;
+        filter: grayscale(0.8);
+      }
+      .card.pic.revealed::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        border-radius: inherit;
+      }
+      .card.pic.revealed-red {
+        border: 3px solid var(--red);
+      }
+      .card.pic.revealed-red::after {
+        background: rgba(192, 57, 43, 0.45);
+      }
+      .card.pic.revealed-blue {
+        border: 3px solid var(--blue);
+      }
+      .card.pic.revealed-blue::after {
+        background: rgba(41, 128, 185, 0.45);
+      }
+      .card.pic.revealed-bystander {
+        border: 3px solid var(--bystander);
+      }
+      .card.pic.revealed-bystander::after {
+        background: rgba(212, 184, 150, 0.45);
+      }
+      .card.pic.revealed-assassin {
+        border: 3px solid #000;
+      }
+      .card.pic.revealed-assassin::after {
+        background: rgba(0, 0, 0, 0.75);
+      }
+
+      /* Spymaster overlay (colored background hint) */
+      .card.spy-red {
+        border-color: rgba(192, 57, 43, 0.6);
+        background: rgba(192, 57, 43, 0.15);
+      }
+      .card.spy-blue {
+        border-color: rgba(41, 128, 185, 0.5);
+        background: rgba(41, 128, 185, 0.15);
+      }
+      .card.spy-assassin {
+        border-color: rgba(30, 30, 30, 0.9);
+        background: rgba(10, 10, 10, 0.6);
+      }
+      .card.spy-bystander {
+        border-color: rgba(212, 184, 150, 0.4);
+        background: rgba(212, 184, 150, 0.08);
+      }
+
+      /* Revealed states */
+      .card.revealed {
+        cursor: default;
+      }
+      .card.revealed:hover {
+        transform: none;
+        border-color: var(--border);
+      }
+
+      .card.revealed-red {
+        background: var(--red);
+        border-color: var(--red-light);
+      }
+
+      .card.revealed-red .card-word {
+        color: white;
+      }
+
+      .card.revealed-blue {
+        background: var(--blue);
+        border-color: var(--blue-light);
+      }
+
+      .card.revealed-blue .card-word {
+        color: white;
+      }
+
+      .card.revealed-bystander {
+        background: var(--bystander-dark);
+        border-color: var(--bystander);
+      }
+
+      .card.revealed-bystander .card-word {
+        color: #2d1a00;
+      }
+
+      .card.revealed-assassin {
+        background: #111;
+        border-color: #333;
+      }
+
+      .card.revealed-assassin .card-word {
+        color: #555;
+      }
+
+      .card.revealed-assassin::after {
+        content: "✕";
+        position: absolute;
+        font-size: 2rem;
+        color: #333;
+        font-family: sans-serif;
+      }
+
+      .card-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .spy-red .card-badge {
+        background: var(--red-light);
+      }
+      .spy-blue .card-badge {
+        background: var(--blue-light);
+      }
+      .spy-assassin .card-badge {
+        background: #555;
+      }
+
+      /* ── SPYMASTER SCREEN ── */
+      #spy-screen {
+        background: var(--bg);
+      }
+
+      .spy-header {
+        padding: 0.6rem 0.8rem;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem 0.8rem;
+        align-items: center;
+      }
+
+      .spy-header-top {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        min-width: 0;
+      }
+
+      .spy-header-actions {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .spy-header-bottom {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      @media (min-width: 600px) {
+        .spy-header {
+          grid-template-columns: auto 1fr auto auto;
+        }
+        .spy-header-bottom {
+          grid-column: auto;
+          justify-content: flex-end;
+          gap: 1rem;
+        }
+      }
+
+      .spy-title {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: 0.15em;
+      }
+
+      .spy-title.red {
+        color: var(--red-light);
+      }
+      .spy-title.blue {
+        color: var(--blue-light);
+      }
+
+      .spy-grid-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.6rem;
+      }
+
+      .spy-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      @media (min-width: 600px) {
+        .spy-grid {
+          max-width: 480px;
+        }
+        .spy-grid-wrap {
+          padding: 1rem;
+        }
+      }
+
+      .spy-cell {
+        aspect-ratio: 1;
+        border-radius: 3px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: clamp(0.7rem, 2.8vw, 1.05rem);
+        letter-spacing: 0.04em;
+        text-align: center;
+        padding: 3px;
+        border: 1px solid transparent;
+        position: relative;
+        transition: opacity 0.3s;
+        gap: 1px;
+      }
+
+      .spy-cell.type-red {
+        background: var(--red);
+        color: white;
+        border-color: var(--red-light);
+      }
+      .spy-cell.type-blue {
+        background: var(--blue);
+        color: white;
+        border-color: var(--blue-light);
+      }
+      .spy-cell.type-assassin {
+        background: #111;
+        color: #555;
+        border-color: #333;
+      }
+      .spy-cell.type-bystander {
+        background: var(--bystander-dark);
+        color: #2d1a00;
+        border-color: var(--bystander);
+      }
+      .spy-cell.done {
+        opacity: 0.35;
+      }
+      .spy-cell.done .spy-word {
+        text-decoration: line-through;
+        opacity: 0.5;
+      }
+      .spy-cell.done::before {
+        content: "✓";
+        position: absolute;
+        top: 2px;
+        right: 4px;
+        font-size: 0.75em;
+        color: rgba(255, 255, 255, 0.7);
+        font-family: sans-serif;
+        line-height: 1;
+      }
+
+      /* Word label centered inside cell */
+      .spy-word {
+        font-size: clamp(0.95rem, 3.6vw, 1.25rem);
+        text-align: center;
+        overflow: hidden;
+        width: 100%;
+        padding: 0 2px;
+        opacity: 1;
+        line-height: 1.05;
+        letter-spacing: 0.02em;
+        /* Allow wrapping for multi-word titles, with bounded line count */
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        word-break: break-word;
+        hyphens: auto;
+      }
+
+      /* Auto-shrink the word in cells that hold longer titles */
+      .spy-cell[data-len="long"] .spy-word {
+        font-size: clamp(0.7rem, 2.6vw, 0.95rem);
+      }
+      .spy-cell[data-len="xlong"] .spy-word {
+        font-size: clamp(0.55rem, 2.1vw, 0.8rem);
+      }
+
+      /* ── Spy view pictures mode ── */
+      .spy-grid.pictures-mode {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      @media (min-width: 600px) {
+        .spy-grid.pictures-mode {
+          grid-template-columns: repeat(5, 1fr);
+          max-width: 560px;
+        }
+      }
+
+      .spy-cell.pic {
+        aspect-ratio: 4/3;
+        padding: 0;
+        overflow: hidden;
+        border-width: 3px;
+        border-style: solid;
+      }
+
+      .spy-pic {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* Team color comes from the border + a subtle tint overlay so the photo stays visible */
+      .spy-cell.pic.type-red {
+        border-color: var(--red);
+        background: var(--red);
+      }
+      .spy-cell.pic.type-blue {
+        border-color: var(--blue);
+        background: var(--blue);
+      }
+      .spy-cell.pic.type-assassin {
+        border-color: #000;
+        background: #000;
+      }
+      .spy-cell.pic.type-bystander {
+        border-color: var(--bystander);
+        background: var(--bystander);
+      }
+
+      .spy-cell.pic::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .spy-cell.pic.type-red::after {
+        background: rgba(192, 57, 43, 0.22);
+      }
+      .spy-cell.pic.type-blue::after {
+        background: rgba(41, 128, 185, 0.22);
+      }
+      .spy-cell.pic.type-bystander::after {
+        background: rgba(212, 184, 150, 0.18);
+      }
+      .spy-cell.pic.type-assassin .spy-pic {
+        opacity: 0.5;
+        filter: grayscale(1);
+      }
+
+      .spy-cell.pic.done .spy-pic {
+        opacity: 0.25;
+        filter: grayscale(0.8);
+      }
+      .spy-cell.pic.done::before {
+        font-size: 1.3em;
+        top: 4px;
+        right: 6px;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+      }
+
+      .spy-legend {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        padding: 0.8rem 1rem;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        flex-wrap: wrap;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        letter-spacing: 0.05em;
+      }
+
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .legend-dot.red {
+        background: var(--red-light);
+      }
+      .legend-dot.blue {
+        background: var(--blue-light);
+      }
+      .legend-dot.assassin {
+        background: #333;
+        border: 1px solid #555;
+      }
+      .legend-dot.bystander {
+        background: var(--bystander-dark);
+      }
+
+      /* ── OVERLAY / MODALS ── */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        padding: 1rem;
+      }
+
+      .modal {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 2rem;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .modal h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 2rem;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+      }
+
+      .modal h2.red {
+        color: var(--red-light);
+      }
+      .modal h2.blue {
+        color: var(--blue-light);
+      }
+      .modal h2.assassin {
+        color: #888;
+      }
+
+      .modal p {
+        color: var(--text-dim);
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+      }
+
+      .modal-btns {
+        display: flex;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+      .modal-btns .btn-sm {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+      }
+
+      /* ── TOAST ── */
+      .toast {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: var(--surface);
+        border: 1px solid var(--gold);
+        color: var(--gold);
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 0.9rem;
+        letter-spacing: 0.15em;
+        padding: 0.6rem 1.5rem;
+        border-radius: 2px;
+        transition: transform 0.3s;
+        z-index: 200;
+        white-space: nowrap;
+      }
+
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* ── JOIN FORM IN SPYMASTER ── */
+      .join-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        gap: 1.2rem;
+        text-align: center;
+      }
+
+      .join-wrap h2 {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1.8rem;
+        letter-spacing: 0.1em;
+        color: var(--gold-light);
+      }
+
+      .badge-team {
+        display: inline-block;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 1rem;
+        letter-spacing: 0.15em;
+        padding: 0.2rem 0.8rem;
+        border-radius: 2px;
+      }
+
+      .badge-team.red {
+        background: var(--red);
+        color: white;
+      }
+      .badge-team.blue {
+        background: var(--blue);
+        color: white;
+      }
+
+      /* ── HINT BAR ── */
+      .hint-bar {
+        padding: 0.5rem 1rem;
+        background: var(--surface2);
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        letter-spacing: 0.05em;
+      }
+
+      .hint-bar span {
+        color: var(--gold);
+      }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        .board-header {
+          padding: 0.4rem 0.6rem;
+        }
+        .grid-wrap {
+          padding: 0.4rem;
+        }
+        .grid {
+          gap: 0.3rem;
+        }
+        .card-word {
+          font-size: 0.65rem;
+        }
+        .score-num {
+          font-size: 1.5rem;
+        }
+      }
+      /* ══════════════════════════════════════════════════
+     MOTION & CELEBRATION
+     ══════════════════════════════════════════════════ */
+
+      /* Screen transitions: each screen fades and rises on entry */
+      .screen.active {
+        animation: screen-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      @keyframes screen-enter {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Card reveal: only the freshly revealed card flips (class set in JS) */
+      .card.just-revealed {
+        animation: card-flip 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
+        backface-visibility: hidden;
+      }
+      @keyframes card-flip {
+        0% {
+          transform: rotateY(0deg) scale(1);
+        }
+        45% {
+          transform: rotateY(90deg) scale(1.06);
+        }
+        100% {
+          transform: rotateY(0deg) scale(1);
+        }
+      }
+
+      .spy-cell.just-revealed {
+        animation: spy-done-pop 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      @keyframes spy-done-pop {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(0.88);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* Turn indicator: pulse on change (class re-triggered in JS) */
+      .turn-indicator.turn-changed {
+        animation: turn-pulse 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      @keyframes turn-pulse {
+        0% {
+          transform: scale(1);
+        }
+        35% {
+          transform: scale(1.18);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* Win flash overlay: covers viewport briefly in team color */
+      #win-flash {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 250;
+      }
+      #win-flash.flash-red {
+        background: var(--red);
+      }
+      #win-flash.flash-blue {
+        background: var(--blue);
+      }
+      #win-flash.flash-dark {
+        background: #000;
+      }
+      #win-flash.flashing {
+        animation: win-flash 0.5s ease-out;
+      }
+      @keyframes win-flash {
+        0% {
+          opacity: 0;
+        }
+        25% {
+          opacity: 0.55;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+
+      /* Confetti canvas sits above everything except the modal content */
+      #confetti-canvas {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 300;
+        display: none;
+      }
+      #confetti-canvas.running {
+        display: block;
+      }
+
+      /* Winner modal: dramatic entrance */
+      .modal.celebrate {
+        animation: modal-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes modal-pop {
+        0% {
+          opacity: 0;
+          transform: scale(0.6) translateY(30px);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      .modal.celebrate #winner-title {
+        animation: title-spread 0.7s 0.15s cubic-bezier(0.22, 1, 0.36, 1)
+          backwards;
+      }
+      @keyframes title-spread {
+        from {
+          letter-spacing: -0.05em;
+          opacity: 0;
+        }
+        to {
+          letter-spacing: 0.12em;
+          opacity: 1;
+        }
+      }
+
+      /* Buttons: subtle press feedback everywhere */
+      button {
+        transition: transform 0.1s ease;
+      }
+      button:active {
+        transform: scale(0.96);
+      }
+
+      /* Respect reduced motion: no flips, no confetti, no flashes */
+      @media (prefers-reduced-motion: reduce) {
+        .screen.active,
+        .card.just-revealed,
+        .spy-cell.just-revealed,
+        .turn-indicator.turn-changed,
+        #win-flash.flashing,
+        .modal.celebrate,
+        .modal.celebrate #winner-title {
+          animation: none !important;
+        }
+        #confetti-canvas {
+          display: none !important;
+        }
+        button {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══════════════════ HOME SCREEN ══════════════════ -->
+    <div id="home" class="screen active">
+      <div class="logo-wrap">
+        <div class="logo-eye"></div>
+        <h1 class="title">Code<br />names<span>field operations</span></h1>
+      </div>
+
+      <div class="home-cards">
+        <div class="mode-card neutral-card" onclick="showSection('new-game')">
+          <div class="mode-icon">🗺️</div>
+          <div class="mode-title">New Game</div>
+          <div class="mode-desc">
+            Start a new mission. Share the room code with your spymasters.
+          </div>
+        </div>
+        <div class="mode-card red-card" onclick="showSection('join-spy')">
+          <div class="mode-icon">🔐</div>
+          <div class="mode-title">Spymaster View</div>
+          <div class="mode-desc">
+            Enter a room code to see your team's secret key card.
+          </div>
+        </div>
+      </div>
+
+      <!-- New Game section -->
+      <div id="section-new-game" class="home-section" style="display: none">
+        <p class="field-label">Word Pack</p>
+        <div class="category-toggle">
+          <button
+            class="category-btn active"
+            id="cat-words"
+            onclick="selectCategory('words')"
+          >
+            <span class="cat-icon">📝</span>
+            <span class="cat-label">English Words</span>
+          </button>
+          <button
+            class="category-btn"
+            id="cat-movies"
+            onclick="selectCategory('movies')"
+          >
+            <span class="cat-icon">🎬</span>
+            <span class="cat-label">Telugu Movies</span>
+          </button>
+          <button
+            class="category-btn"
+            id="cat-pictures"
+            onclick="selectCategory('pictures')"
+          >
+            <span class="cat-icon">🖼️</span>
+            <span class="cat-label">Pictures</span>
+          </button>
+        </div>
+        <div id="era-filter" class="era-filter" style="display: none">
+          <p class="field-label">Era</p>
+          <div class="era-chips">
+            <button
+              class="era-btn active"
+              data-era="all"
+              onclick="selectEra('all')"
+            >
+              All
+            </button>
+            <button
+              class="era-btn"
+              data-era="classics"
+              onclick="selectEra('classics')"
+            >
+              Classics
+            </button>
+            <button
+              class="era-btn"
+              data-era="2000plus"
+              onclick="selectEra('2000plus')"
+            >
+              2000s+
+            </button>
+            <button
+              class="era-btn"
+              data-era="2010plus"
+              onclick="selectEra('2010plus')"
+            >
+              2010s+
+            </button>
+            <button
+              class="era-btn"
+              data-era="2020only"
+              onclick="selectEra('2020only')"
+            >
+              2020s only
+            </button>
+          </div>
+        </div>
+        <p id="pictures-note" class="hint-text" style="display: none">
+          🖼️ Pictures mode uses 20 photo cards (official Pictures rules) and
+          needs an internet connection to load images.
+        </p>
+        <p class="field-label" style="margin-top: 0.4rem">
+          Room Code (4 letters — share with spymasters)
+        </p>
+        <input
+          type="text"
+          id="room-code-input"
+          maxlength="6"
+          placeholder="AUTO"
+          oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')"
+        />
+        <p class="hint-text">Leave blank to generate automatically</p>
+        <button class="btn-primary" onclick="startNewGame()">
+          ▶ Launch Mission
+        </button>
+        <button class="btn-sm back-btn" onclick="hideSection('new-game')">
+          ← Back
+        </button>
+      </div>
+
+      <!-- Join as Spymaster section -->
+      <div id="section-join-spy" class="home-section" style="display: none">
+        <p class="field-label">Room Code</p>
+        <input
+          type="text"
+          id="spy-room-input"
+          maxlength="8"
+          placeholder="ENTER"
+          oninput="
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9-]/g, '')
+          "
+        />
+        <p class="field-label" style="margin-top: 0.4rem">Your Team</p>
+        <div class="team-toggle">
+          <button class="team-btn red" id="btn-red" onclick="selectTeam('red')">
+            🔴 Red
+          </button>
+          <button
+            class="team-btn blue"
+            id="btn-blue"
+            onclick="selectTeam('blue')"
+          >
+            🔵 Blue
+          </button>
+        </div>
+        <button class="btn-primary" onclick="joinAsSpy()">
+          🔑 View Key Card
+        </button>
+        <button class="btn-sm back-btn" onclick="hideSection('join-spy')">
+          ← Back
+        </button>
+      </div>
+
+      <p class="tagline" style="margin-top: 2rem">
+        Offline · No account · No internet needed
+      </p>
+      <button
+        class="theme-toggle"
+        onclick="toggleTheme()"
+        title="Toggle theme"
+        style="margin-top: 1rem"
+      >
+        🌓
+      </button>
+    </div>
+
+    <!-- ══════════════════ BOARD SCREEN ══════════════════ -->
+    <div id="board-screen" class="screen">
+      <div class="board-header">
+        <div class="room-badge">
+          ROOM: <span id="display-room-code">----</span>
+        </div>
+        <div class="score-display">
+          <div class="score-team red">
+            <div class="score-num" id="red-remaining">0</div>
+            <div class="score-label">Red</div>
+          </div>
+          <div class="score-team blue">
+            <div class="score-num" id="blue-remaining">0</div>
+            <div class="score-label">Blue</div>
+          </div>
+        </div>
+        <div class="turn-indicator" id="turn-badge">RED's TURN</div>
+        <div class="header-actions">
+          <button
+            class="theme-toggle sound-toggle"
+            onclick="toggleSound(this)"
+            title="Mute sounds"
+          >
+            🔊
+          </button>
+          <button
+            class="theme-toggle"
+            onclick="toggleTheme()"
+            title="Toggle theme"
+          >
+            🌓
+          </button>
+          <button class="btn-sm" onclick="endTurn()">End Turn</button>
+          <button class="btn-sm danger" onclick="confirmNewGame()">New</button>
+          <button class="btn-sm" onclick="goHome()">Exit</button>
+        </div>
+      </div>
+      <div class="grid-wrap">
+        <div class="grid" id="main-grid"></div>
+      </div>
+      <div class="hint-bar">
+        📡 Spymasters: open this game on your device and enter room code
+        <span id="hint-code"></span>
+      </div>
+    </div>
+
+    <!-- ══════════════════ SPYMASTER SCREEN ══════════════════ -->
+    <div id="spy-screen" class="screen">
+      <div class="spy-header">
+        <div class="spy-header-top">
+          <div class="spy-title" id="spy-team-title">SPYMASTER</div>
+          <div class="room-badge">
+            ROOM: <span id="spy-display-code">----</span>
+          </div>
+        </div>
+        <div class="spy-header-actions">
+          <button
+            class="theme-toggle sound-toggle"
+            onclick="toggleSound(this)"
+            title="Mute sounds"
+          >
+            🔊
+          </button>
+          <button
+            class="theme-toggle"
+            onclick="toggleTheme()"
+            title="Toggle theme"
+          >
+            🌓
+          </button>
+          <button class="btn-sm" onclick="goHome()">Exit</button>
+        </div>
+        <div class="spy-header-bottom">
+          <div class="score-display">
+            <div class="score-team red">
+              <div class="score-num" id="spy-red-remaining">0</div>
+              <div class="score-label">Red</div>
+            </div>
+            <div class="score-team blue">
+              <div class="score-num" id="spy-blue-remaining">0</div>
+              <div class="score-label">Blue</div>
+            </div>
+          </div>
+          <div class="turn-indicator" id="spy-turn-badge">RED's TURN</div>
+        </div>
+      </div>
+      <div class="spy-grid-wrap">
+        <div class="spy-grid" id="spy-key-grid"></div>
+      </div>
+      <div class="spy-legend">
+        <div class="legend-item">
+          <div class="legend-dot red"></div>
+          Red agents
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot blue"></div>
+          Blue agents
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot bystander"></div>
+          Bystanders
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot assassin"></div>
+          Assassin
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ WINNER MODAL ══════════════════ -->
+    <div class="modal-overlay" id="winner-modal" style="display: none">
+      <div class="modal">
+        <h2 id="winner-title" class="red">RED WINS</h2>
+        <p id="winner-msg">
+          All red agents have been found. Mission accomplished!
+        </p>
+        <div class="modal-btns">
+          <button
+            class="btn-primary"
+            onclick="startNewGame(true)"
+            style="flex: 1"
+          >
+            New Game
+          </button>
+          <button
+            class="btn-sm"
+            onclick="
+              document.getElementById('winner-modal').style.display = 'none'
+            "
+            style="flex: 1"
+          >
+            Review Board
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Win celebration layers -->
+    <div id="win-flash"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+      // ══════════════════════════════════════════════════════
+      // WORD LISTS
+      // ══════════════════════════════════════════════════════
+      const WORDS = [
+        "AFRICA",
+        "AGENT",
+        "AIR",
+        "ALIEN",
+        "ALPS",
+        "AMAZON",
+        "ANGEL",
+        "ANTARCTICA",
+        "APPLE",
+        "ARM",
+        "BACK",
+        "BALL",
+        "BAND",
+        "BANK",
+        "BAR",
+        "BARK",
+        "BAT",
+        "BATTERY",
+        "BEACH",
+        "BEAR",
+        "BEAT",
+        "BED",
+        "BELL",
+        "BELT",
+        "BERLIN",
+        "BILL",
+        "BLOCK",
+        "BOARD",
+        "BOLT",
+        "BOMB",
+        "BOND",
+        "BOOM",
+        "BOOT",
+        "BOTTLE",
+        "BOW",
+        "BOX",
+        "BRIDGE",
+        "BUCK",
+        "BUG",
+        "BUGLE",
+        "BUNKER",
+        "BUSH",
+        "BUTTON",
+        "CAP",
+        "CAPITAL",
+        "CAR",
+        "CARD",
+        "CAST",
+        "CAT",
+        "CELL",
+        "CHAIR",
+        "CHANGE",
+        "CHARGE",
+        "CHECK",
+        "CHEST",
+        "CHICKEN",
+        "CHICK",
+        "CHINA",
+        "CHOCOLATE",
+        "CIRCLE",
+        "CLIFF",
+        "CLUB",
+        "COAT",
+        "CODE",
+        "COLD",
+        "COLUMN",
+        "COMPOUND",
+        "CONDUCTOR",
+        "CONTRACT",
+        "COOK",
+        "COPPER",
+        "COTTON",
+        "COURT",
+        "COVER",
+        "CRANE",
+        "CRASH",
+        "CROSS",
+        "CROWN",
+        "CYCLE",
+        "CZECH",
+        "DANCE",
+        "DATE",
+        "DAY",
+        "DEATH",
+        "DECK",
+        "DEGREE",
+        "DIAMOND",
+        "DICE",
+        "DINOSAUR",
+        "DISEASE",
+        "DOCTOR",
+        "DOG",
+        "DOOR",
+        "DRAFT",
+        "DRAGON",
+        "DRESS",
+        "DRILL",
+        "DRIVE",
+        "DRUM",
+        "DUCK",
+        "DUST",
+        "EAGLE",
+        "EAR",
+        "EARTH",
+        "EGG",
+        "EGYPT",
+        "ENGINE",
+        "EUROPE",
+        "EYE",
+        "FACE",
+        "FAIR",
+        "FALL",
+        "FAN",
+        "FENCE",
+        "FIELD",
+        "FILE",
+        "FILM",
+        "FIRE",
+        "FISH",
+        "FLUTE",
+        "FLY",
+        "FOOT",
+        "FORCE",
+        "FOREST",
+        "FORK",
+        "FRANCE",
+        "FREEZE",
+        "FROG",
+        "FUEL",
+        "GAME",
+        "GAS",
+        "GENIUS",
+        "GERMANY",
+        "GHOST",
+        "GIANT",
+        "GLASS",
+        "GLOVE",
+        "GOLD",
+        "GRACE",
+        "GRASS",
+        "GREECE",
+        "GREEN",
+        "GROUND",
+        "GUN",
+        "HAMMER",
+        "HAND",
+        "HAM",
+        "HAWK",
+        "HEAD",
+        "HEART",
+        "HELICOPTER",
+        "HIMALAYAS",
+        "HOLE",
+        "HOLLYWOOD",
+        "HOOK",
+        "HORN",
+        "HORSE",
+        "HOSPITAL",
+        "HOTEL",
+        "ICE",
+        "INDIA",
+        "IRON",
+        "IVORY",
+        "JAM",
+        "JAPAN",
+        "JET",
+        "JUDGE",
+        "JUPITER",
+        "KANGAROO",
+        "KIWI",
+        "KNIFE",
+        "KNIGHT",
+        "LAB",
+        "LAMP",
+        "LASER",
+        "LAWYER",
+        "LEAD",
+        "LEATHER",
+        "LEMON",
+        "LEPRECHAUN",
+        "LIFE",
+        "LIGHT",
+        "LIMOUSINE",
+        "LINE",
+        "LINK",
+        "LION",
+        "LOCH NESS",
+        "LOG",
+        "LONDON",
+        "LUCK",
+        "MAIL",
+        "MAMMOTH",
+        "MAN",
+        "MAP",
+        "MARBLE",
+        "MARCH",
+        "MATCH",
+        "MERCURY",
+        "MEXICO",
+        "MINE",
+        "MISSILE",
+        "MOLE",
+        "MOON",
+        "MOSCOW",
+        "MOUTH",
+        "MUMMY",
+        "NAIL",
+        "NEEDLE",
+        "NET",
+        "NEW YORK",
+        "NIGHT",
+        "NINJA",
+        "NOTE",
+        "NUT",
+        "OIL",
+        "OLIVE",
+        "OLYMPUS",
+        "OPERA",
+        "ORANGE",
+        "ORBIT",
+        "ORGAN",
+        "PALM",
+        "PAN",
+        "PAPER",
+        "PARK",
+        "PART",
+        "PASS",
+        "PASTE",
+        "PENGUIN",
+        "PIANO",
+        "PIE",
+        "PILOT",
+        "PIN",
+        "PIPE",
+        "PIRATE",
+        "PISTOL",
+        "PITCH",
+        "PLANE",
+        "PLANT",
+        "PLATE",
+        "PLATYPUS",
+        "PLAY",
+        "PLOT",
+        "POINT",
+        "POISON",
+        "POLAR BEAR",
+        "POLICE",
+        "POOL",
+        "PORT",
+        "POST",
+        "POUND",
+        "PRESS",
+        "PRINCESS",
+        "PRISON",
+        "PROFESSOR",
+        "PUMP",
+        "PUMPKIN",
+        "PUPIL",
+        "PYRAMID",
+        "QUEEN",
+        "RABBIT",
+        "RACKET",
+        "RAY",
+        "RING",
+        "ROCK",
+        "ROME",
+        "ROOT",
+        "ROSE",
+        "ROUND",
+        "RUBBER",
+        "RUSSIA",
+        "SATELLITE",
+        "SATURN",
+        "SCHOOL",
+        "SCIENTIST",
+        "SCORPION",
+        "SCREEN",
+        "SCUBA DIVER",
+        "SEAL",
+        "SERVER",
+        "SHADOW",
+        "SHARK",
+        "SHIP",
+        "SHOE",
+        "SHOT",
+        "SINK",
+        "SLAVE",
+        "SLIP",
+        "SMUGGLER",
+        "SNAKE",
+        "SNOW",
+        "SOCK",
+        "SOLDIER",
+        "SOUL",
+        "SOUND",
+        "SPACE",
+        "SPELL",
+        "SPIDER",
+        "SPIKE",
+        "SPINE",
+        "SPOT",
+        "SPRING",
+        "SPY",
+        "SQUARE",
+        "STAFF",
+        "STAR",
+        "STATE",
+        "STICK",
+        "STRAW",
+        "STREAM",
+        "STRIKE",
+        "STUDENT",
+        "SUB",
+        "SUIT",
+        "SUPER",
+        "SUPERHERO",
+        "SWITCH",
+        "TABLE",
+        "TANK",
+        "TEACHER",
+        "TELESCOPE",
+        "TIME",
+        "TIP",
+        "TOKYO",
+        "TOOTH",
+        "TORCH",
+        "TOWER",
+        "TRACK",
+        "TRAIN",
+        "TRIP",
+        "TRUNK",
+        "TUBE",
+        "TURKEY",
+        "UNDERTAKER",
+        "UNICORN",
+        "VAN",
+        "VENUS",
+        "VICE",
+        "WAKE",
+        "WALL",
+        "WAR",
+        "WASHINGTON",
+        "WATCH",
+        "WAVE",
+        "WEB",
+        "WELL",
+        "WHALE",
+        "WITCH",
+        "WIZARD",
+        "WORM",
+      ];
+
+      // Telugu Movies (Tollywood) — 323 unique titles, bucketed by era
+      // Active pool is built by combining selected eras (see MOVIE_ERA_POOLS)
+      const MOVIES_CLASSICS = [
+        "MAYABAZAR",
+        "PATHALA BHAIRAVI",
+        "DEVADASU",
+        "MISSAMMA",
+        "GUNDAMMA KATHA",
+        "LAVAKUSA",
+        "NARTANASALA",
+        "DANA VEERA SURA KARNA",
+        "ADIVI RAMUDU",
+        "VETAGADU",
+        "DRIVER RAMUDU",
+        "RAM ROBERT RAHIM",
+        "BHAKTHA PRAHLADA",
+        "BANGARU PAPA",
+        "SAMSARAM",
+        "PELLI CHESI CHOODU",
+        "MOOGA MANASULU",
+        "KANYASULKAM",
+        "CHENCHU LAKSHMI",
+        "BHOOKAILAS",
+        "JAGADEKA VEERUDU",
+        "DONGA RAMUDU",
+        "MAYA NETHRI",
+        "DEVATA",
+        "BANDIPOTU",
+        "DAGUDU MOOTHALU",
+        "VARASATWAM",
+        "JAYABHERI",
+        "SIRI SAMPADALU",
+        "TODI KODALLU",
+        "MAALA PILLA",
+        "UMA SUNDARI",
+        "PELLI SANDADI",
+        "JEEVITHA CHAKRAM",
+        "PRATIGYA",
+        "SAMPRAPTHI",
+        "GUDACHARI 116",
+        "YAMAGOLA",
+        "ADAVI RAMUDU",
+        "SANKARABHARANAM",
+        "SAGARA SANGAMAM",
+        "SWATHI MUTYAM",
+        "SWAYAM KRUSHI",
+        "RUDRAVEENA",
+        "SAPTAPADI",
+        "SIRIVENNELA",
+        "SIRI SIRI MUVVA",
+        "KHAIDI",
+        "BOBBILI PULI",
+        "SIMHASANAM",
+        "CHALLENGE",
+        "AAKHARI POARATAM",
+        "KOKILAMMA",
+        "STATE RAOWDY",
+        "MAHARSHI",
+        "SUTRADHARULU",
+        "CHITRAM BHALARE VICHITRAM",
+        "AAKALI RAJYAM",
+        "SARDAR PAAPA RAYUDU",
+        "AJEYA",
+        "KONDAVEETI DONGA",
+        "NIPPULANTI MANISHI",
+        "PRESIDENT GARI PELLAM",
+        "MAGAADU",
+        "ANTULU LENI KATHA",
+        "BOTTU",
+        "MOSAGADU",
+        "PADAHARELLA VAYASU",
+        "ALLU RAMA LINGAIAH",
+        "ABHILASHA",
+        "JUSTICE CHAUDHARY",
+        "SARDAAR PAPARAYUDU",
+        "GHARANA MOGUDU",
+        "BOBBILI RAJA",
+        "ROJA",
+        "BOMBAY",
+        "NUVVE KAVALI",
+        "NUVVU NAAKU NACHAV",
+        "PREMIKULA ROJU",
+        "TAJ MAHAL",
+        "MANMADHUDU",
+        "MURARI",
+        "NINNE PELLADATHA",
+        "SHOWMAN",
+        "SUBHALAGNAM",
+        "HITLER",
+        "SAMARA SIMHA REDDY",
+        "NARASIMHA NAIDU",
+        "INDRA",
+        "CHOODALANI VUNDI",
+        "ANANDAM",
+        "ANTAHPURAM",
+        "SHIVA",
+        "GAAYAM",
+        "GANG LEADER",
+        "ALLUDA MAJAKA",
+        "PEDARAYUDU",
+        "ANNAMAYYA",
+        "SRI KRISHNARJUNA YUDHAM",
+        "SWARNA KAMALAM",
+        "SUBHA SANKALPAM",
+        "BHARATHIYUDU",
+        "BAVAGARU BAGUNNARA",
+        "CHANDRALEKHA",
+        "CHIRUNAVVUTHO",
+        "KHADGAM",
+        "SISINDRI",
+        "NIRNAYAM",
+        "GENTLEMAN",
+        "SREE",
+        "TAMMUDU",
+        "JODI",
+        "PRINCE",
+        "MUTAMESTRI",
+        "SAMARASIMHA REDDY",
+        "MANCHI MANUSHULU",
+        "VAARASUDU",
+        "ARDHANGI",
+        "RAYUDU",
+        "CHITTI ABBAYI",
+        "KUTUMBA GOWRAVAM",
+        "ROWDY ALLUDU",
+        "TANIKELLA",
+        "KSHANA KSHANAM",
+      ];
+
+      const MOVIES_2000S = [
+        "OKKADU",
+        "ATHADU",
+        "POKIRI",
+        "JALSA",
+        "ARJUN",
+        "ARYA",
+        "ARYA 2",
+        "BUNNY",
+        "HAPPY",
+        "DESAMUDURU",
+        "PARUGU",
+        "NUVVOSTANANTE NENODDANTANI",
+        "BOMMARILLU",
+        "GODAVARI",
+        "ANAND",
+        "NUVVU NENU",
+        "DIL",
+        "SYE",
+        "CHATRAPATI",
+        "STALIN",
+        "BANGARAM",
+        "YAMADONGA",
+        "SAINIKUDU",
+        "ATHIDHI",
+        "GAMYAM",
+        "KANTRI",
+        "KING",
+        "TAGORE",
+        "BOSS",
+        "SHANKAR DADA MBBS",
+        "SHOCK",
+        "SUNDARAKANDA",
+        "BUDDHA",
+        "VIKRAMARKUDU",
+        "ASHOK",
+        "CHIRUTHA",
+        "BHALEVADIVI BASU",
+        "KICK",
+        "CHENNAKESAVA REDDY",
+        "SANDADE SANDADI",
+        "VEEDU",
+        "RAKHI",
+        "BILLA",
+        "KOMARAM PULI",
+        "SIMHADRI",
+        "NAYAK",
+        "ANUKOKUNDA OKA ROJU",
+        "NIJAM",
+        "SANTOSHAM",
+        "STUDENT NO 1",
+        "VENKY",
+        "CHEPALA POOLA STORY",
+        "DEVI PUTRUDU",
+        "NANI",
+        "AVAKAYI BIRYANI",
+        "ANUKOKKUNDA",
+        "ULTIMATE STAR",
+        "SONTHAMOORA",
+        "PILLA",
+        "TULASI",
+        "ATHANOKKADE",
+        "GHARSHANA",
+        "MAGADU",
+        "TAKKARI DONGA",
+        "ROBO",
+        "HOMAM",
+        "EE ROJULLO",
+        "ONE OK",
+        "MAGADHEERA",
+      ];
+
+      const MOVIES_2010S = [
+        "EEGA",
+        "BAAHUBALI",
+        "BAAHUBALI 2",
+        "SRIMANTHUDU",
+        "BHAARAT ANE NENU",
+        "RANGASTHALAM",
+        "ATHARINTIKI DAAREDI",
+        "JULAYI",
+        "DOOKUDU",
+        "BUSINESSMAN",
+        "RACE GURRAM",
+        "SARRAINODU",
+        "TEMPER",
+        "JANATHA GARAGE",
+        "KHAIDI NO 150",
+        "SARDAAR GABBAR SINGH",
+        "NANNAKU PREMATHO",
+        "BRUCE LEE",
+        "BABU BANGARAM",
+        "OOPIRI",
+        "A AA",
+        "SARILERU NEEKEVVARU",
+        "ALA VAIKUNTHAPURRAMULOO",
+        "VENKATADRI EXPRESS",
+        "SOGGADE CHINNI NAYANA",
+        "MIRCHI",
+        "RAMAYYA VASTHAVAYYA",
+        "RABHASA",
+        "AAGADU",
+        "LOUKYAM",
+        "GOVINDUDU ANDARIVADELE",
+        "MANAM",
+        "RACHA",
+        "NUVVILA",
+        "DHADA",
+        "GABBAR SINGH",
+        "BADRINATH",
+        "BODYGUARD",
+        "SHIRDI SAI",
+        "ENDUKANTE PREMANTA",
+        "KICK 2",
+        "LEGEND",
+        "RUDHRAMADEVI",
+        "SOUKHYAM",
+        "SIZE ZERO",
+        "DICTATOR",
+        "NENU LOCAL",
+        "KATAMARAYUDU",
+        "DUVVADA JAGANNADHAM",
+        "SPYDER",
+        "JAI LAVA KUSA",
+        "FIDAA",
+        "ARJUN REDDY",
+        "PELLI CHOOPULU",
+        "KSHANAM",
+        "GHAZI",
+        "BHAAGAMATHIE",
+        "TAXIWALA",
+        "AGENT SAI SRINIVASA ATHREYA",
+        "MAJILI",
+        "JERSEY",
+        "DEAR COMRADE",
+        "EVARU",
+        "MATHU VADALARA",
+        "COLOUR PHOTO",
+        "RACE",
+        "NUVVANTE NAKISHTAM",
+        "VEDAM",
+      ];
+
+      const MOVIES_2020S = [
+        "RRR",
+        "PUSHPA",
+        "PUSHPA 2",
+        "SALAAR",
+        "HI NANNA",
+        "KGF",
+        "JATHI RATNALU",
+        "UPPENA",
+        "LOVE STORY",
+        "SHYAM SINGHA ROY",
+        "AKHANDA",
+        "BHEEMLA NAYAK",
+        "DJ TILLU",
+        "TILLU SQUARE",
+        "KARTHIKEYA 2",
+        "HANU MAN",
+        "KALKI",
+        "DEVARA",
+        "GAME CHANGER",
+        "SITA RAMAM",
+        "MAJOR",
+        "BIMBISARA",
+        "VIRUPAKSHA",
+        "BABY",
+        "BALAGAM",
+        "DASARA",
+        "BHOLAA SHANKAR",
+        "WALTAIR VEERAYYA",
+        "RAVANASURA",
+        "VEERA SIMHA REDDY",
+        "VAATHI",
+        "KUSHI",
+        "SKANDA",
+        "BRO",
+        "MAD",
+        "MAX",
+        "18 PAGES",
+        "RADHE SHYAM",
+        "ACHARYA",
+        "NAANDHI",
+        "DRUSHYAM 2",
+        "GANGUBAI",
+        "BHAGAVANTH KESARI",
+        "TIGER NAGESWARA RAO",
+        "EAGLE",
+        "EXTRA",
+        "SARKARU VAARI PAATA",
+        "KRACK",
+        "VAKEEL SAAB",
+        "NARAPPA",
+        "REKKA",
+        "SOLO BRATHUKE SO BETTER",
+        "KILLER SOUP",
+        "GOODACHARI",
+        "SAINDHAV",
+        "SAMAJAVARAGAMANA",
+        "TUCK JAGADISH",
+        "CHECK",
+        "SHAAKUNTALAM",
+        "MAESTRO",
+        "MANCHI ROJULOCHAYI",
+        "DRINKER SAI",
+      ];
+
+      // All movies combined (default when era = "all")
+      const MOVIES = [
+        ...MOVIES_CLASSICS,
+        ...MOVIES_2000S,
+        ...MOVIES_2010S,
+        ...MOVIES_2020S,
+      ];
+
+      // Era key → pool of movies (built lazily so the combined arrays are correct)
+      const MOVIE_ERA_POOLS = {
+        all: MOVIES, // MA-XXXX
+        classics: MOVIES_CLASSICS, // M9-XXXX (pre-2000s)
+        "2000plus": [...MOVIES_2000S, ...MOVIES_2010S, ...MOVIES_2020S], // M0-XXXX
+        "2010plus": [...MOVIES_2010S, ...MOVIES_2020S], // M1-XXXX
+        "2020only": MOVIES_2020S, // M2-XXXX
+      };
+
+      // ══════════════════════════════════════════════════════
+      // PICTURES MODE — image source configuration
+      // ══════════════════════════════════════════════════════
+      // The game derives 20 deterministic pictures from the room code so all
+      // devices (board + spymasters) see the same cards with no server sync.
+      //
+      // SETUP FOR YOUR OWN SERVER:
+      //   1. Put this file (renamed index.html) and a "photos" folder side by side
+      //   2. Fill photos/ with images named 0.jpg, 1.jpg, ... up to poolSize-1
+      //      (run the provided download_photos.py to fill it automatically)
+      //   3. Make sure poolSize below matches how many photos you have
+      //
+      // If a photo fails to load (missing file, offline folder), the card
+      // automatically falls back to a deterministic picsum.photos image,
+      // so the game never breaks.
+      const PICTURES_CONFIG = {
+        source: "folder", // 'folder' = your photos/ directory, 'picsum' = online photos only
+        folderPath: "photos/", // relative to this HTML file
+        poolSize: 200, // photos are named 0.jpg ... (poolSize-1).jpg
+        extension: ".jpg",
+      };
+
+      // Deterministic online fallback image for a seed string
+      function picsumUrlForSeed(seed) {
+        return `https://picsum.photos/seed/${encodeURIComponent(seed)}/400/300`;
+      }
+
+      // Builds 20 deterministic picture card entries for a given room code.
+      // Folder mode picks 20 DISTINCT indices from the pool (no duplicate photos
+      // in one game). Each card also carries a deterministic fallback URL.
+      function buildPictureCards(code, rng) {
+        const cards = [];
+        const useFolder = PICTURES_CONFIG.source === "folder";
+
+        let indices = [];
+        if (useFolder) {
+          const all = Array.from(
+            { length: PICTURES_CONFIG.poolSize },
+            (_, i) => i,
+          );
+          indices = shuffle(all, rng).slice(0, 20);
+        }
+
+        for (let i = 0; i < 20; i++) {
+          const salt = Math.floor(rng() * 1e9);
+          const seed = `${code}-${i}-${salt}`;
+          const fallback = picsumUrlForSeed(seed);
+          const img = useFolder
+            ? PICTURES_CONFIG.folderPath +
+              indices[i] +
+              PICTURES_CONFIG.extension
+            : fallback;
+          cards.push({
+            word: `PIC ${i + 1}`, // fallback label + accessibility
+            img,
+            fallbackImg: fallback,
+            type: null, // assigned later
+            revealed: false,
+          });
+        }
+        return cards;
+      }
+
+      function pickWordPool(category, era) {
+        if (category !== "movies") return WORDS;
+        return MOVIE_ERA_POOLS[era] || MOVIES;
+      }
+
+      // Maps the single-char era code (after 'M') to an era key
+      const ERA_CODE_TO_KEY = {
+        A: "all", // MA-XXXX
+        9: "classics", // M9-XXXX (pre-2000s)
+        0: "2000plus", // M0-XXXX
+        1: "2010plus", // M1-XXXX
+        2: "2020only", // M2-XXXX
+      };
+      const ERA_KEY_TO_CODE = Object.fromEntries(
+        Object.entries(ERA_CODE_TO_KEY).map(([k, v]) => [v, k]),
+      );
+
+      // ══════════════════════════════════════════════════════
+      // STATE
+      // ══════════════════════════════════════════════════════
+      let gameState = null;
+      let selectedTeam = "red";
+      let selectedCategory = "words"; // 'words' or 'movies'
+      let selectedEra = "all"; // 'all', 'classics', '2000plus', '2010plus', '2020only'
+      let spyRoomCode = null;
+      let pollInterval = null;
+
+      function selectCategory(cat) {
+        selectedCategory = cat;
+        document
+          .getElementById("cat-words")
+          .classList.toggle("active", cat === "words");
+        document
+          .getElementById("cat-movies")
+          .classList.toggle("active", cat === "movies");
+        document
+          .getElementById("cat-pictures")
+          .classList.toggle("active", cat === "pictures");
+        // Inline reveal of era filter only when Movies is active
+        const eraFilter = document.getElementById("era-filter");
+        if (eraFilter)
+          eraFilter.style.display = cat === "movies" ? "flex" : "none";
+        // Pictures mode needs internet - show a gentle note
+        const picNote = document.getElementById("pictures-note");
+        if (picNote)
+          picNote.style.display = cat === "pictures" ? "block" : "none";
+      }
+
+      function selectEra(era) {
+        selectedEra = era;
+        document.querySelectorAll(".era-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.era === era);
+        });
+      }
+
+      // ══════════════════════════════════════════════════════
+      // CONFETTI ENGINE (self-contained, no libraries, offline-safe)
+      // ══════════════════════════════════════════════════════
+      const Confetti = (() => {
+        let canvas,
+          ctx,
+          particles = [],
+          raf = null,
+          endTime = 0;
+
+        const TEAM_COLORS = {
+          red: ["#c0392b", "#e74c3c", "#ff7461", "#d4af37", "#f1c40f"],
+          blue: ["#2980b9", "#3498db", "#5dade2", "#d4af37", "#f1c40f"],
+        };
+
+        function ensureCanvas() {
+          if (!canvas) {
+            canvas = document.getElementById("confetti-canvas");
+            ctx = canvas.getContext("2d");
+          }
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+
+        function spawnBurst(
+          x,
+          y,
+          angle,
+          spread,
+          count,
+          colors,
+          speedMin,
+          speedMax,
+        ) {
+          for (let i = 0; i < count; i++) {
+            const a = angle + (Math.random() - 0.5) * spread;
+            const speed = speedMin + Math.random() * (speedMax - speedMin);
+            particles.push({
+              x,
+              y,
+              vx: Math.cos(a) * speed,
+              vy: Math.sin(a) * speed,
+              size: 5 + Math.random() * 6,
+              color: colors[Math.floor(Math.random() * colors.length)],
+              rotation: Math.random() * Math.PI * 2,
+              rotSpeed: (Math.random() - 0.5) * 0.3,
+              shape: Math.random() < 0.5 ? "rect" : "circle",
+              gravity: 0.18 + Math.random() * 0.08,
+              drag: 0.985,
+              opacity: 1,
+              fade: 0.004 + Math.random() * 0.006,
+            });
+          }
+        }
+
+        function tick() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          particles = particles.filter(
+            (p) => p.opacity > 0 && p.y < canvas.height + 30,
+          );
+
+          for (const p of particles) {
+            p.vx *= p.drag;
+            p.vy = p.vy * p.drag + p.gravity;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rotation += p.rotSpeed;
+            p.opacity -= p.fade;
+
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.opacity);
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.fillStyle = p.color;
+            if (p.shape === "rect") {
+              ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+            } else {
+              ctx.beginPath();
+              ctx.arc(0, 0, p.size / 2.4, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+
+          if (particles.length > 0 || Date.now() < endTime) {
+            raf = requestAnimationFrame(tick);
+          } else {
+            stop();
+          }
+        }
+
+        function stop() {
+          if (raf) cancelAnimationFrame(raf);
+          raf = null;
+          particles = [];
+          if (canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.classList.remove("running");
+          }
+        }
+
+        function celebrate(team) {
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+            return;
+          ensureCanvas();
+          canvas.classList.add("running");
+          const colors = TEAM_COLORS[team] || TEAM_COLORS.red;
+          const W = canvas.width,
+            H = canvas.height;
+
+          // Center burst immediately
+          spawnBurst(
+            W / 2,
+            H * 0.4,
+            -Math.PI / 2,
+            Math.PI * 1.6,
+            60,
+            colors,
+            4,
+            11,
+          );
+
+          // Two corner cannons, repeated volleys for ~2.2 seconds
+          let volleys = 0;
+          const cannonTimer = setInterval(() => {
+            spawnBurst(0, H, -Math.PI / 3.2, 0.5, 28, colors, 9, 15); // bottom-left, up-right
+            spawnBurst(W, H, -Math.PI + Math.PI / 3.2, 0.5, 28, colors, 9, 15); // bottom-right, up-left
+            volleys++;
+            if (volleys >= 5) clearInterval(cannonTimer);
+          }, 380);
+
+          endTime = Date.now() + 2600;
+          if (!raf) tick();
+        }
+
+        window.addEventListener("resize", () => {
+          if (canvas && raf) ensureCanvas();
+        });
+
+        return { celebrate, stop };
+      })();
+
+      // ══════════════════════════════════════════════════════
+      // SOUND ENGINE (WebAudio synthesis, no audio files)
+      // ══════════════════════════════════════════════════════
+      const Sound = (() => {
+        let actx = null;
+        let muted = localStorage.getItem("cn_muted") === "true";
+
+        function ctxGet() {
+          if (!actx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return null;
+            actx = new AC();
+          }
+          if (actx.state === "suspended") actx.resume();
+          return actx;
+        }
+
+        function tone(freq, duration, type = "sine", volume = 0.12, delay = 0) {
+          const ac = ctxGet();
+          if (!ac || muted) return;
+          const osc = ac.createOscillator();
+          const gain = ac.createGain();
+          osc.type = type;
+          osc.frequency.value = freq;
+          const t0 = ac.currentTime + delay;
+          gain.gain.setValueAtTime(0, t0);
+          gain.gain.linearRampToValueAtTime(volume, t0 + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+          osc.connect(gain).connect(ac.destination);
+          osc.start(t0);
+          osc.stop(t0 + duration + 0.05);
+        }
+
+        return {
+          // Soft tick for any card press
+          reveal() {
+            tone(660, 0.07, "triangle", 0.08);
+          },
+          // Pleasant blip when a team agent is found
+          agent() {
+            tone(523, 0.1, "triangle", 0.1);
+            tone(784, 0.12, "triangle", 0.09, 0.06);
+          },
+          // Dull thud for bystander
+          bystander() {
+            tone(180, 0.18, "sine", 0.12);
+          },
+          // Low dramatic hit for assassin
+          assassin() {
+            tone(98, 0.5, "sawtooth", 0.1);
+            tone(73, 0.6, "sine", 0.12, 0.08);
+          },
+          // Small ascending fanfare for the win
+          fanfare() {
+            tone(523, 0.14, "triangle", 0.11, 0);
+            tone(659, 0.14, "triangle", 0.11, 0.12);
+            tone(784, 0.16, "triangle", 0.11, 0.24);
+            tone(1047, 0.4, "triangle", 0.12, 0.36);
+          },
+          // Gentle whoosh-like swap for turn changes
+          turn() {
+            tone(440, 0.06, "sine", 0.06);
+            tone(330, 0.08, "sine", 0.06, 0.05);
+          },
+          toggleMute() {
+            muted = !muted;
+            localStorage.setItem("cn_muted", muted);
+            return muted;
+          },
+          isMuted() {
+            return muted;
+          },
+        };
+      })();
+
+      function toggleSound(btn) {
+        const muted = Sound.toggleMute();
+        document.querySelectorAll(".sound-toggle").forEach((b) => {
+          b.textContent = muted ? "🔇" : "🔊";
+          b.title = muted ? "Unmute sounds" : "Mute sounds";
+        });
+        if (!muted) Sound.reveal(); // tiny confirmation blip
+      }
+
+      // ══════════════════════════════════════════════════════
+      // THEME
+      // ══════════════════════════════════════════════════════
+      function toggleTheme() {
+        document.body.classList.toggle("light");
+        localStorage.setItem(
+          "cn_theme",
+          document.body.classList.contains("light") ? "light" : "dark",
+        );
+      }
+
+      // Restore saved theme on load
+      if (localStorage.getItem("cn_theme") === "light") {
+        document.body.classList.add("light");
+      }
+
+      // ══════════════════════════════════════════════════════
+      // SEEDED RANDOM
+      // ══════════════════════════════════════════════════════
+      function seedRandom(seed) {
+        let s = seed;
+        return function () {
+          s = (s * 1664525 + 1013904223) & 0xffffffff;
+          return (s >>> 0) / 0xffffffff;
+        };
+      }
+
+      function codeToSeed(code) {
+        let n = 0;
+        for (let i = 0; i < code.length; i++) {
+          n = n * 31 + code.charCodeAt(i);
+        }
+        return Math.abs(n);
+      }
+
+      function shuffle(arr, rng) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      // Category and era are encoded as a prefix in the room code itself,
+      // so spymasters joining with just the code automatically get the right pool.
+      // Formats:
+      //   M<era>-XXXX → movies, <era> is A/9/0/1/2
+      //   P-XXXX     → pictures
+      //   XXXX       → english words
+      function parseRoomCode(code) {
+        if (typeof code === "string") {
+          if (code.length >= 2 && code[0] === "P" && code[1] === "-") {
+            return { category: "pictures", era: null };
+          }
+          if (code.length >= 3 && code[0] === "M" && code[2] === "-") {
+            const era = ERA_CODE_TO_KEY[code[1]];
+            if (era) return { category: "movies", era };
+          }
+        }
+        return { category: "words", era: null };
+      }
+
+      // Backward-compat helper for any callers that only need the category
+      function getCategoryFromCode(code) {
+        return parseRoomCode(code).category;
+      }
+
+      // ══════════════════════════════════════════════════════
+      // GAME GENERATION
+      // ══════════════════════════════════════════════════════
+      function generateGame(code) {
+        const rng = seedRandom(codeToSeed(code));
+        const { category, era } = parseRoomCode(code);
+
+        let cards, redTotal, blueTotal, firstTurn;
+
+        if (category === "pictures") {
+          // Official Codenames Pictures rules: 20 cards, 8-7-1-4 distribution
+          cards = buildPictureCards(code, rng);
+          firstTurn = rng() < 0.5 ? "red" : "blue";
+          redTotal = firstTurn === "red" ? 8 : 7;
+          blueTotal = firstTurn === "blue" ? 8 : 7;
+          const types = [
+            ...Array(redTotal).fill("red"),
+            ...Array(blueTotal).fill("blue"),
+            ...Array(1).fill("assassin"),
+            ...Array(4).fill("bystander"),
+          ];
+          const shuffledTypes = shuffle(types, rng);
+          cards.forEach((card, i) => {
+            card.type = shuffledTypes[i];
+          });
+        } else {
+          // Word-based modes: 25 cards, 9-8-1-7 distribution
+          const pool = pickWordPool(category, era);
+          const words = shuffle(pool, rng).slice(0, 25);
+
+          firstTurn = rng() < 0.5 ? "red" : "blue";
+          redTotal = firstTurn === "red" ? 9 : 8;
+          blueTotal = firstTurn === "blue" ? 9 : 8;
+
+          const types = [
+            ...Array(redTotal).fill("red"),
+            ...Array(blueTotal).fill("blue"),
+            ...Array(1).fill("assassin"),
+            ...Array(7).fill("bystander"),
+          ];
+          const shuffledTypes = shuffle(types, rng);
+
+          cards = words.map((word, i) => ({
+            word,
+            type: shuffledTypes[i],
+            revealed: false,
+          }));
+        }
+
+        return {
+          code,
+          category,
+          era,
+          cards,
+          turn: firstTurn,
+          redTotal,
+          blueTotal,
+          redRemaining: redTotal,
+          blueRemaining: blueTotal,
+          winner: null,
+          timestamp: Date.now(),
+        };
+      }
+
+      // ══════════════════════════════════════════════════════
+      // STORAGE
+      // ══════════════════════════════════════════════════════
+      function saveGame(state) {
+        localStorage.setItem("cn_game_" + state.code, JSON.stringify(state));
+      }
+
+      function loadGame(code) {
+        const raw = localStorage.getItem("cn_game_" + code);
+        return raw ? JSON.parse(raw) : null;
+      }
+
+      function randomCode() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        let code = "";
+        for (let i = 0; i < 4; i++)
+          code += chars[Math.floor(Math.random() * chars.length)];
+        return code;
+      }
+
+      // ══════════════════════════════════════════════════════
+      // UI HELPERS
+      // ══════════════════════════════════════════════════════
+      function showScreen(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+      }
+
+      function showSection(name) {
+        document
+          .querySelectorAll('[id^="section-"]')
+          .forEach((s) => (s.style.display = "none"));
+        document.getElementById("section-" + name).style.display = "block";
+        document
+          .querySelectorAll(".home-cards")
+          .forEach((c) => (c.style.display = "none"));
+      }
+
+      function hideSection(name) {
+        document.getElementById("section-" + name).style.display = "none";
+        document
+          .querySelectorAll(".home-cards")
+          .forEach((c) => (c.style.display = "flex"));
+      }
+
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+      }
+
+      function selectTeam(team) {
+        selectedTeam = team;
+        document
+          .getElementById("btn-red")
+          .classList.toggle("active", team === "red");
+        document
+          .getElementById("btn-blue")
+          .classList.toggle("active", team === "blue");
+      }
+
+      selectTeam("red");
+
+      // Initialize sound toggle icons from saved preference
+      if (Sound.isMuted()) {
+        document.querySelectorAll(".sound-toggle").forEach((b) => {
+          b.textContent = "🔇";
+          b.title = "Unmute sounds";
+        });
+      }
+
+      // ══════════════════════════════════════════════════════
+      // BOARD RENDERING
+      // ══════════════════════════════════════════════════════
+      // Tracks revealed card indices from the previous render per view,
+      // so re-renders only animate freshly revealed cards (not all of them)
+      const prevRevealed = { board: new Set(), spy: new Set() };
+
+      function renderBoard(state, isSpymaster = false) {
+        const grid = document.getElementById(
+          isSpymaster ? "spy-key-grid" : "main-grid",
+        );
+        grid.innerHTML = "";
+
+        const viewKey = isSpymaster ? "spy" : "board";
+        const seen = prevRevealed[viewKey];
+        const nowRevealed = new Set();
+
+        const isPictures = state.category === "pictures";
+        grid.classList.toggle("pictures-mode", isPictures);
+
+        state.cards.forEach((card, idx) => {
+          const el = document.createElement("div");
+          if (card.revealed) nowRevealed.add(idx);
+          const isFreshReveal = card.revealed && !seen.has(idx);
+
+          if (isSpymaster) {
+            el.className = `spy-cell type-${card.type}${card.revealed ? " done" : ""}`;
+            if (isFreshReveal) el.classList.add("just-revealed");
+            if (isPictures) {
+              el.classList.add("pic");
+              const imgEl = document.createElement("img");
+              imgEl.className = "spy-pic";
+              imgEl.src = card.img;
+              imgEl.alt = card.word;
+              imgEl.loading = "lazy";
+              if (card.fallbackImg && card.img !== card.fallbackImg) {
+                imgEl.onerror = () => {
+                  imgEl.onerror = null;
+                  imgEl.src = card.fallbackImg;
+                };
+              }
+              el.appendChild(imgEl);
+            } else {
+              // Adaptive size hint for long titles (movies often run long)
+              const len = card.word.length;
+              if (len > 18) el.dataset.len = "xlong";
+              else if (len > 11) el.dataset.len = "long";
+              const wordEl = document.createElement("div");
+              wordEl.className = "spy-word";
+              wordEl.textContent = card.word;
+              el.appendChild(wordEl);
+            }
+          } else {
+            el.className = "card";
+
+            if (card.revealed) {
+              el.classList.add("revealed", "revealed-" + card.type);
+              if (isFreshReveal) el.classList.add("just-revealed");
+            }
+
+            if (isPictures) {
+              el.classList.add("pic");
+              const imgEl = document.createElement("img");
+              imgEl.className = "card-pic";
+              imgEl.src = card.img;
+              imgEl.alt = card.word;
+              imgEl.loading = "lazy";
+              if (card.fallbackImg && card.img !== card.fallbackImg) {
+                imgEl.onerror = () => {
+                  imgEl.onerror = null;
+                  imgEl.src = card.fallbackImg;
+                };
+              }
+              el.appendChild(imgEl);
+            } else {
+              // Adaptive size hint for long titles
+              const len = card.word.length;
+              if (len > 18) el.dataset.len = "xlong";
+              else if (len > 11) el.dataset.len = "long";
+
+              const wordEl = document.createElement("div");
+              wordEl.className = "card-word";
+              wordEl.textContent = card.word;
+              el.appendChild(wordEl);
+            }
+
+            if (!card.revealed) {
+              el.addEventListener("click", () => revealCard(idx));
+            }
+          }
+
+          grid.appendChild(el);
+        });
+
+        // Update score
+        const reds = state.cards.filter(
+          (c) => c.type === "red" && !c.revealed,
+        ).length;
+        const blues = state.cards.filter(
+          (c) => c.type === "blue" && !c.revealed,
+        ).length;
+
+        if (isSpymaster) {
+          document.getElementById("spy-red-remaining").textContent = reds;
+          document.getElementById("spy-blue-remaining").textContent = blues;
+          const spyTurn = document.getElementById("spy-turn-badge");
+          updateTurnBadge(spyTurn, state, " WINS");
+        } else {
+          document.getElementById("red-remaining").textContent = reds;
+          document.getElementById("blue-remaining").textContent = blues;
+          const turnBadge = document.getElementById("turn-badge");
+          updateTurnBadge(turnBadge, state, " WINS!");
+        }
+
+        // Remember which cards were revealed for next render's animation diff
+        prevRevealed[viewKey] = nowRevealed;
+      }
+
+      // Sets the turn badge text/class; pulses it when the turn actually changed
+      function updateTurnBadge(badge, state, winSuffix) {
+        const newText = state.winner
+          ? state.winner.toUpperCase() + winSuffix
+          : state.turn.toUpperCase() + "'S TURN";
+        const changed =
+          badge.textContent !== newText && badge.textContent.trim() !== "";
+        badge.textContent = newText;
+        badge.className = "turn-indicator " + (state.winner || state.turn);
+        if (changed && !state.winner) {
+          badge.classList.remove("turn-changed");
+          void badge.offsetWidth; // restart animation
+          badge.classList.add("turn-changed");
+        }
+      }
+
+      // ══════════════════════════════════════════════════════
+      // ACTIONS
+      // ══════════════════════════════════════════════════════
+      function startNewGame(force = false) {
+        // Strip any existing prefix the user might have pasted in
+        const input = document
+          .getElementById("room-code-input")
+          .value.trim()
+          .toUpperCase()
+          .replace(/^M[A-Z0-9]-/, "")
+          .replace(/^P-/, "");
+        const baseCode = input || randomCode();
+        let code;
+        if (selectedCategory === "movies") {
+          const eraChar = ERA_KEY_TO_CODE[selectedEra] || "A";
+          code = "M" + eraChar + "-" + baseCode;
+        } else if (selectedCategory === "pictures") {
+          code = "P-" + baseCode;
+        } else {
+          code = baseCode;
+        }
+        gameState = generateGame(code);
+        saveGame(gameState);
+        prevRevealed.board = new Set();
+
+        document.getElementById("display-room-code").textContent = code;
+        document.getElementById("hint-code").textContent = code;
+        renderBoard(gameState);
+        showScreen("board-screen");
+        hideSection("new-game");
+        document.getElementById("room-code-input").value = "";
+
+        if (document.getElementById("winner-modal").style.display !== "none") {
+          document.getElementById("winner-modal").style.display = "none";
+        }
+        Confetti.stop();
+
+        showToast("ROOM: " + code + " — MISSION START");
+      }
+
+      function revealCard(idx) {
+        if (!gameState || gameState.winner) return;
+        const card = gameState.cards[idx];
+        if (card.revealed) return;
+
+        card.revealed = true;
+        const currentTurn = gameState.turn;
+
+        if (card.type === "assassin") {
+          Sound.assassin();
+          gameState.winner = currentTurn === "red" ? "blue" : "red";
+        } else if (card.type === "red") {
+          Sound.agent();
+          gameState.redRemaining--;
+          if (gameState.redRemaining === 0) {
+            gameState.winner = "red";
+          } else if (currentTurn !== "red") {
+            gameState.turn = "red";
+          }
+        } else if (card.type === "blue") {
+          Sound.agent();
+          gameState.blueRemaining--;
+          if (gameState.blueRemaining === 0) {
+            gameState.winner = "blue";
+          } else if (currentTurn !== "blue") {
+            gameState.turn = "blue";
+          }
+        } else {
+          // Bystander → always end current turn
+          Sound.bystander();
+          gameState.turn = currentTurn === "red" ? "blue" : "red";
+        }
+
+        saveGame(gameState);
+        renderBoard(gameState);
+
+        if (gameState.winner)
+          showWinner(gameState.winner, card.type === "assassin");
+      }
+
+      function endTurn() {
+        if (!gameState || gameState.winner) return;
+        gameState.turn = gameState.turn === "red" ? "blue" : "red";
+        Sound.turn();
+        saveGame(gameState);
+        renderBoard(gameState);
+        showToast(gameState.turn.toUpperCase() + "'S TURN");
+      }
+
+      function showWinner(team, byAssassin) {
+        const modal = document.getElementById("winner-modal");
+        const box = modal.querySelector(".modal");
+        const title = document.getElementById("winner-title");
+        const msg = document.getElementById("winner-msg");
+        title.textContent = team.toUpperCase() + " WINS";
+        title.className = team;
+        msg.textContent = byAssassin
+          ? `The assassin was found! ${team.toUpperCase()} team wins by default.`
+          : `All ${team} agents have been contacted. Mission accomplished!`;
+
+        // ── Orchestration ──
+        // 1. Screen flash: team color for a clean win, blackout for assassin endings
+        const flash = document.getElementById("win-flash");
+        flash.className = byAssassin ? "flash-dark" : "flash-" + team;
+        flash.classList.remove("flashing");
+        void flash.offsetWidth;
+        flash.classList.add("flashing");
+
+        // 2. Modal pops in after the flash peaks
+        modal.style.display = "none";
+        setTimeout(() => {
+          modal.style.display = "flex";
+          box.classList.remove("celebrate");
+          void box.offsetWidth;
+          box.classList.add("celebrate");
+        }, 350);
+
+        // 3. Confetti cannons + fanfare ride in with the modal
+        setTimeout(() => {
+          Confetti.celebrate(team);
+          Sound.fanfare();
+        }, 500);
+      }
+
+      function confirmNewGame() {
+        if (confirm("Start a new game? Current game will be lost.")) {
+          startNewGame(true);
+        }
+      }
+
+      function joinAsSpy() {
+        const code = document
+          .getElementById("spy-room-input")
+          .value.trim()
+          .toUpperCase();
+        if (code.length < 2) {
+          showToast("ENTER A ROOM CODE");
+          return;
+        }
+
+        // Try to load existing game; if not found, generate from code so it's deterministic
+        let state = loadGame(code);
+        if (!state) {
+          state = generateGame(code);
+          // Don't save — board device is the host
+        }
+
+        spyRoomCode = code;
+        gameState = state;
+
+        // Prime the animation tracker so joining an in-progress game
+        // doesn't animate every already-revealed card at once
+        prevRevealed.spy = new Set(
+          state.cards
+            .map((c, i) => (c.revealed ? i : -1))
+            .filter((i) => i >= 0),
+        );
+
+        document.getElementById("spy-display-code").textContent = code;
+        const teamTitle = document.getElementById("spy-team-title");
+        teamTitle.textContent = selectedTeam.toUpperCase() + " SPYMASTER";
+        teamTitle.className = "spy-title " + selectedTeam;
+
+        renderBoard(state, true);
+        showScreen("spy-screen");
+        hideSection("join-spy");
+        document.getElementById("spy-room-input").value = "";
+
+        // Poll for updates
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(() => {
+          const fresh = loadGame(code);
+          if (fresh && fresh.timestamp !== gameState.timestamp) {
+            gameState = fresh;
+            renderBoard(fresh, true);
+          }
+        }, 1000);
+      }
+
+      function goHome() {
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        spyRoomCode = null;
+        showScreen("home");
+        document
+          .querySelectorAll('[id^="section-"]')
+          .forEach((s) => (s.style.display = "none"));
+        document
+          .querySelectorAll(".home-cards")
+          .forEach((c) => (c.style.display = "flex"));
+      }
+
+      // Re-render spy view when this tab gets focus (in case board changed)
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && spyRoomCode) {
+          const fresh = loadGame(spyRoomCode);
+          if (fresh) {
+            gameState = fresh;
+            renderBoard(fresh, true);
+          }
+        }
+      });
+    </script>
+  </body>
 </html>

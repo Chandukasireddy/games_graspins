@@ -39,12 +39,18 @@
             background: var(--bg-page);
             color: var(--text-primary);
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 24px;
             overflow-x: hidden;
+        }
+
+        /* On short screens, pin to top and allow scrolling instead of clipping. */
+        @media (max-height: 800px) {
+            body { justify-content: flex-start; }
         }
 
         .container {
@@ -211,8 +217,10 @@
 
         .board-grid {
             position: relative;
-            width: 320px;
-            height: 320px;
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
             background: #090e18;
             border-radius: 8px;
         }
@@ -400,10 +408,13 @@
         }
 
         @media (max-width: 480px) {
+            body { padding: 16px 12px; }
             .title { font-size: 1.8rem; }
-            .board-container { padding: 12px; }
-            .board-grid { width: 280px; height: 280px; }
+            .back-link { margin-bottom: 14px; }
+            header { margin-bottom: 16px; }
+            .board-container { padding: 14px; }
             .dot { width: 10px; height: 10px; }
+            .box { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -542,8 +553,8 @@
         // Game Configuration
         const GRID_DOTS = 5;
         const BOXES_SIZE = 4;
-        const BOARD_PIXELS = 320; // coordinate box boundary size
-        const SPACING = BOARD_PIXELS / (GRID_DOTS - 1);
+        // Percentage-based coordinate system so the board scales fluidly to any width.
+        const PCT = 100 / (GRID_DOTS - 1); // gap between dots, as % of board size
 
         let claimedLines = {}; // key -> '1' or '2'
         let claimedBoxes = {}; // key -> '1' or '2'
@@ -627,11 +638,11 @@
                     box.className = 'box';
                     box.id = `box_${r}_${c}`;
                     
-                    // Style coordinates
-                    box.style.left = `${c * SPACING + 6}px`;
-                    box.style.top = `${r * SPACING + 6}px`;
-                    box.style.width = `${SPACING - 12}px`;
-                    box.style.height = `${SPACING - 12}px`;
+                    // Style coordinates (percent-based, inset by 6px to sit inside the lines)
+                    box.style.left = `calc(${c * PCT}% + 6px)`;
+                    box.style.top = `calc(${r * PCT}% + 6px)`;
+                    box.style.width = `calc(${PCT}% - 12px)`;
+                    box.style.height = `calc(${PCT}% - 12px)`;
 
                     boardGrid.appendChild(box);
                 }
@@ -646,9 +657,9 @@
                     line.id = `h_${r}_${c}`;
                     
                     // Coordinates
-                    line.style.left = `${c * SPACING}px`;
-                    line.style.top = `${r * SPACING}px`;
-                    line.style.width = `${SPACING}px`;
+                    line.style.left = `${c * PCT}%`;
+                    line.style.top = `${r * PCT}%`;
+                    line.style.width = `${PCT}%`;
 
                     line.addEventListener('click', () => claimLine('h', r, c));
                     boardGrid.appendChild(line);
@@ -663,9 +674,9 @@
                     line.id = `v_${r}_${c}`;
 
                     // Coordinates
-                    line.style.left = `${c * SPACING}px`;
-                    line.style.top = `${r * SPACING}px`;
-                    line.style.height = `${SPACING}px`;
+                    line.style.left = `${c * PCT}%`;
+                    line.style.top = `${r * PCT}%`;
+                    line.style.height = `${PCT}%`;
 
                     line.addEventListener('click', () => claimLine('v', r, c));
                     boardGrid.appendChild(line);
@@ -677,8 +688,8 @@
                 for (let c = 0; c < GRID_DOTS; c++) {
                     const dot = document.createElement('div');
                     dot.className = 'dot';
-                    dot.style.left = `${c * SPACING}px`;
-                    dot.style.top = `${r * SPACING}px`;
+                    dot.style.left = `${c * PCT}%`;
+                    dot.style.top = `${r * PCT}%`;
                     boardGrid.appendChild(dot);
                 }
             }
