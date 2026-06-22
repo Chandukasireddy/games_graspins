@@ -136,6 +136,9 @@ header.title{text-align:center;margin-bottom:20px}
 .step{background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
 .step-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);font-weight:800;margin-bottom:8px}
 textarea.code{width:100%;height:84px;background:#060913;border:1px solid var(--border);border-radius:10px;color:#a5f3c0;font-family:ui-monospace,monospace;font-size:.72rem;padding:10px;resize:vertical;word-break:break-all}
+.big-code{font-size:3.4rem;font-weight:800;letter-spacing:.5rem;color:#a5f3c0;font-variant-numeric:tabular-nums;margin:6px 0 14px;text-shadow:0 0 24px rgba(16,185,129,.4);padding-left:.5rem}
+.code-input{width:100%;background:#060913;border:1px solid var(--border);border-radius:12px;color:#f8fafc;font-size:2.6rem;font-weight:800;letter-spacing:.6rem;text-align:center;padding:12px;font-variant-numeric:tabular-nums;outline:none}
+.code-input:focus{border-color:var(--accent);box-shadow:0 0 18px rgba(99,102,241,.3)}
 .hint-text{font-size:.8rem;color:var(--text-muted);margin-top:8px}
 .conn-state{font-size:.85rem;font-weight:700;padding:8px 12px;border-radius:10px;text-align:center;margin-bottom:14px}
 .conn-state.waiting{background:rgba(234,179,8,.12);color:#eab308}
@@ -186,8 +189,8 @@ textarea.code{width:100%;height:84px;background:#060913;border:1px solid var(--b
     <button class="mode-card" id="mode-host">
         <span class="ico">📡</span>
         <span>
-            <div class="mc-title">Host a Friend (same Wi-Fi)</div>
-            <div class="mc-desc">Create a game and share a code. You play White.</div>
+            <div class="mc-title">Host a Friend</div>
+            <div class="mc-desc">Get a 4-digit code to share. You play White.</div>
         </span>
     </button>
 
@@ -195,10 +198,10 @@ textarea.code{width:100%;height:84px;background:#060913;border:1px solid var(--b
         <span class="ico">🔗</span>
         <span>
             <div class="mc-title">Join a Friend</div>
-            <div class="mc-desc">Paste your friend's code to connect. You play Black.</div>
+            <div class="mc-desc">Type your friend's 4-digit code. You play Black.</div>
         </span>
     </button>
-    <p class="hint-text" style="margin-top:6px">Online play is direct device-to-device (peer-to-peer) — no server, no accounts.</p>
+    <p class="hint-text" style="margin-top:6px">Online play connects device-to-device (peer-to-peer). Moves are sent directly between you two.</p>
 </div>
 
 <!-- ============ GAME ============ -->
@@ -265,30 +268,20 @@ textarea.code{width:100%;height:84px;background:#060913;border:1px solid var(--b
 
         <!-- HOST -->
         <div id="host-flow" class="hidden">
-            <div class="step">
-                <div class="step-label">Step 1 · Send this code to your friend</div>
-                <textarea class="code" id="host-offer" readonly></textarea>
-                <button class="btn btn-green" id="copy-offer" style="margin-top:8px;width:100%">📋 Copy my code</button>
-            </div>
-            <div class="step">
-                <div class="step-label">Step 2 · Paste the code they send back</div>
-                <textarea class="code" id="host-answer" placeholder="Paste your friend's reply code here…"></textarea>
-                <button class="btn btn-primary" id="host-connect" style="margin-top:8px;width:100%">Connect</button>
+            <div class="step" style="text-align:center">
+                <div class="step-label">Share this code with your friend</div>
+                <div class="big-code" id="host-code">– – – –</div>
+                <button class="btn btn-green" id="copy-code" style="width:100%">📋 Copy code</button>
+                <p class="hint-text">They pick <b>Join a Friend</b> and type these 4 digits. The game starts the moment they connect.</p>
             </div>
         </div>
 
         <!-- JOIN -->
         <div id="join-flow" class="hidden">
-            <div class="step">
-                <div class="step-label">Step 1 · Paste the code from your friend</div>
-                <textarea class="code" id="join-offer" placeholder="Paste the host's code here…"></textarea>
-                <button class="btn btn-primary" id="join-generate" style="margin-top:8px;width:100%">Generate my reply</button>
-            </div>
-            <div class="step hidden" id="join-step2">
-                <div class="step-label">Step 2 · Send this reply code back to the host</div>
-                <textarea class="code" id="join-answer" readonly></textarea>
-                <button class="btn btn-green" id="copy-answer" style="margin-top:8px;width:100%">📋 Copy my reply</button>
-                <p class="hint-text">Once the host pastes this, the game starts automatically.</p>
+            <div class="step" style="text-align:center">
+                <div class="step-label">Enter your friend's 4-digit code</div>
+                <input type="tel" inputmode="numeric" maxlength="4" id="join-code" class="code-input" placeholder="0000" autocomplete="off">
+                <button class="btn btn-primary" id="join-connect" style="width:100%;margin-top:10px">Connect</button>
             </div>
         </div>
     </div>
@@ -681,39 +674,36 @@ function backToMenu(){
 }
 
 /* ============================================================
-   WebRTC peer-to-peer (manual signaling — works on same Wi-Fi)
+   Simple online play via PeerJS (free public broker).
+   Host gets a 4-digit code; friend just types it in.
    ============================================================ */
-let pc=null,dc=null,connRole=null;
-const RTC_CFG={iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
+const PEER_PREFIX='graspins-chess-';      // namespaces our codes on the shared broker
+let peer=null,conn=null,connRole=null,joinTimer=null;
+let peerJsReady=false;
 
-function encode(desc){return btoa(JSON.stringify(desc));}
-function decode(str){return JSON.parse(atob(str.trim()));}
-function waitIce(p){
-    return new Promise(res=>{
-        if(p.iceGatheringState==='complete')return res();
-        const check=()=>{if(p.iceGatheringState==='complete'){p.removeEventListener('icegatheringstatechange',check);res();}};
-        p.addEventListener('icegatheringstatechange',check);
-        setTimeout(res,2800); // fallback so codes still appear
-    });
+function loadPeerJS(){
+    if(peerJsReady||window.Peer)return Promise.resolve(true);
+    const cdns=[
+        'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
+        'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'
+    ];
+    return (async()=>{
+        for(const url of cdns){
+            try{
+                await new Promise((res,rej)=>{const s=document.createElement('script');s.src=url;s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+                if(window.Peer){peerJsReady=true;return true;}
+            }catch(e){/* try next */}
+        }
+        return false;
+    })();
 }
 
-function setupChannel(channel){
-    dc=channel;
-    dc.onopen=()=>{
-        connState('ok','Connected! Starting game…');
-        setTimeout(()=>{
-            closeModal();
-            startGame('online',connRole==='host'?'w':'b');
-            toast('Connected — good luck!');
-        },500);
-    };
-    dc.onclose=()=>{if(mode==='online'&&!gameOver){toast('Friend disconnected');}};
-    dc.onmessage=(e)=>handleMessage(JSON.parse(e.data));
-}
+function randomCode(){return String(Math.floor(1000+Math.random()*9000));}
 
-function send(obj){try{if(dc&&dc.readyState==='open')dc.send(JSON.stringify(obj));}catch(e){}}
+function send(obj){try{if(conn&&conn.open)conn.send(obj);}catch(e){}}
 
 function handleMessage(msg){
+    if(!msg||typeof msg!=='object')return;
     if(msg.t==='move'){
         doMove({from:msg.from,to:msg.to,promotion:msg.promotion},true);
     }else if(msg.t==='resign'){
@@ -723,90 +713,114 @@ function handleMessage(msg){
     }
 }
 
+function setupConn(c){
+    conn=c;
+    c.on('open',()=>{
+        clearTimeout(joinTimer);
+        connState('ok','Connected! Starting game…');
+        setTimeout(()=>{
+            closeModal();
+            startGame('online',connRole==='host'?'w':'b');
+            toast('Connected — good luck!');
+        },450);
+    });
+    c.on('data',handleMessage);
+    c.on('close',()=>{if(mode==='online'&&!gameOver)toast('Friend disconnected');});
+    c.on('error',()=>{if(mode!=='online')connState('err','Connection error. Try again.');});
+}
+
 async function openConn(role){
     actx&&actx.resume();
     connRole=role;
     $('conn-modal').classList.add('show');
     $('host-flow').classList.toggle('hidden',role!=='host');
     $('join-flow').classList.toggle('hidden',role!=='join');
-    $('join-step2').classList.add('hidden');
+
+    connState('waiting','Connecting to matchmaking…');
+    const ok=await loadPeerJS();
+    if(!ok){connState('err','Couldn\'t load the online module. Check your internet and retry.');return;}
+
     if(role==='host'){
         $('conn-title').textContent='Host a Game';
-        $('conn-lead').textContent='You will play White. Send your code to your friend, then paste their reply.';
-        await createHostOffer();
+        $('conn-lead').textContent='You play White. Share the code below with your friend.';
+        $('host-code').textContent='– – – –';
+        hostNewCode();
     }else{
         $('conn-title').textContent='Join a Game';
-        $('conn-lead').textContent='You will play Black. Paste the host\'s code, then send your reply back.';
-        connState('waiting','Waiting for the host\'s code…');
-        $('join-offer').value='';$('join-answer').value='';
+        $('conn-lead').textContent='You play Black. Type your friend\'s 4-digit code.';
+        connState('waiting','Enter the code your friend gave you.');
+        const inp=$('join-code');inp.value='';setTimeout(()=>inp.focus(),100);
     }
 }
 
-async function createHostOffer(){
-    try{
-        closePeer();
-        connState('waiting','Generating your code…');
-        pc=new RTCPeerConnection(RTC_CFG);
-        pc.onconnectionstatechange=()=>{if(pc&&pc.connectionState==='failed')connState('err','Connection failed. Try again.');};
-        const channel=pc.createDataChannel('chess',{ordered:true});
-        setupChannel(channel);
-        const offer=await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        await waitIce(pc);
-        $('host-offer').value=encode(pc.localDescription);
-        connState('waiting','Code ready — share it, then paste their reply below.');
-    }catch(e){connState('err','Could not start: '+e.message);}
+/* ---- Host ---- */
+function hostNewCode(attempt=0){
+    closePeer();
+    if(attempt>5){connState('err','Couldn\'t reserve a code. Please retry.');return;}
+    const code=randomCode();
+    connState('waiting','Reserving your code…');
+    peer=new Peer(PEER_PREFIX+code);
+    peer.on('open',()=>{
+        $('host-code').textContent=code.split('').join(' ');
+        $('host-code').dataset.code=code;
+        connState('waiting','Waiting for your friend to join…');
+    });
+    peer.on('connection',(c)=>{setupConn(c);});
+    peer.on('error',(err)=>{
+        if(err.type==='unavailable-id'){hostNewCode(attempt+1);}           // code already taken -> pick another
+        else if(err.type==='network'||err.type==='server-error'){connState('err','Network issue reaching matchmaking. Retry.');}
+        else{connState('err','Error: '+err.type);}
+    });
 }
 
-$('host-connect').onclick=async()=>{
-    const code=$('host-answer').value;
-    if(!code.trim()){toast('Paste your friend\'s reply code first');return;}
-    try{
-        connState('waiting','Connecting…');
-        await pc.setRemoteDescription(decode(code));
-    }catch(e){connState('err','Invalid reply code. Ask your friend to re-copy it.');}
-};
+/* ---- Join ---- */
+function joinWithCode(){
+    const raw=($('join-code').value||'').replace(/\D/g,'');
+    if(raw.length!==4){toast('Enter the 4-digit code');return;}
+    closePeer();
+    connState('waiting','Looking for game '+raw+'…');
+    peer=new Peer(); // random id for the joiner
+    peer.on('open',()=>{
+        const c=peer.connect(PEER_PREFIX+raw,{reliable:true});
+        if(!c){connState('err','Could not start a connection. Retry.');return;}
+        setupConn(c);
+        // if nothing connects in time, the code was probably wrong/host left
+        clearTimeout(joinTimer);
+        joinTimer=setTimeout(()=>{if(!conn||!conn.open)connState('err','No game found with code '+raw+'. Check the code and that your friend is hosting.');},12000);
+    });
+    peer.on('error',(err)=>{
+        if(err.type==='peer-unavailable'){connState('err','No game found with code '+raw+'. Double-check it.');}
+        else if(err.type==='network'||err.type==='server-error'){connState('err','Network issue reaching matchmaking. Retry.');}
+        else{connState('err','Error: '+err.type);}
+    });
+}
 
-$('join-generate').onclick=async()=>{
-    const code=$('join-offer').value;
-    if(!code.trim()){toast('Paste the host\'s code first');return;}
-    try{
-        closePeer();
-        connState('waiting','Generating your reply…');
-        pc=new RTCPeerConnection(RTC_CFG);
-        pc.onconnectionstatechange=()=>{if(pc&&pc.connectionState==='failed')connState('err','Connection failed. Try again.');};
-        pc.ondatachannel=(e)=>setupChannel(e.channel);
-        await pc.setRemoteDescription(decode(code));
-        const answer=await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        await waitIce(pc);
-        $('join-answer').value=encode(pc.localDescription);
-        $('join-step2').classList.remove('hidden');
-        connState('waiting','Reply ready — send it back to the host.');
-    }catch(e){connState('err','Invalid host code. Ask them to re-copy it.');}
-};
+$('join-connect').onclick=joinWithCode;
+$('join-code').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);});
+$('join-code').addEventListener('keydown',e=>{if(e.key==='Enter')joinWithCode();});
 
-/* copy buttons */
-$('copy-offer').onclick=()=>copyText($('host-offer').value,'Code copied!');
-$('copy-answer').onclick=()=>copyText($('join-answer').value,'Reply copied!');
+$('copy-code').onclick=()=>{
+    const code=$('host-code').dataset.code;
+    if(!code){toast('Code not ready yet');return;}
+    copyText(code,'Code copied!');
+};
 function copyText(txt,msg){
-    if(!txt){toast('Nothing to copy yet');return;}
     navigator.clipboard?.writeText(txt).then(()=>toast(msg)).catch(()=>{
-        // fallback
         const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();
-        try{document.execCommand('copy');toast(msg);}catch(e){toast('Copy failed — select manually');}
+        try{document.execCommand('copy');toast(msg);}catch(e){toast('Copy failed');}
         ta.remove();
     });
 }
 
 function connState(kind,text){const el=$('conn-state');el.className='conn-state '+kind;el.textContent=text;}
 function closeModal(){$('conn-modal').classList.remove('show');}
-$('conn-close').onclick=()=>{closeModal();closePeer();};
+$('conn-close').onclick=()=>{closeModal();if(mode!=='online')closePeer();};
 
 function closePeer(){
-    try{dc&&dc.close();}catch(e){}
-    try{pc&&pc.close();}catch(e){}
-    dc=null;pc=null;
+    clearTimeout(joinTimer);
+    try{conn&&conn.close();}catch(e){}
+    try{peer&&peer.destroy();}catch(e){}
+    conn=null;peer=null;
 }
 
 /* ============================================================

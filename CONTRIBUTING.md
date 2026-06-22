@@ -19,10 +19,11 @@ games_graspins/
 │
 ├── solo/                      # 🧠 Single-player/Solo games
 │   ├── Semantix/              # Guess words based on semantic meaning
-│   └── minesweeper/           # Neon classic minesweeper
+│   ├── minesweeper/           # Neon classic minesweeper
+│   └── sudoku/                # Unique-solution Sudoku with notes & hints
 │
 ├── two-player/                # 🔴 Local 2-player board games
-│   ├── chess/                 # chess.com-style board + same-Wi-Fi P2P play
+│   ├── chess/                 # chess.com-style board + 4-digit-code online play
 │   ├── connect4/              # Gravity-based Connect Four
 │   ├── dotsandboxes/          # Touch-optimized Dots & Boxes
 │   └── tictactoe/             # Glowing neon Tic-Tac-Toe

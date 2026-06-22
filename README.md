@@ -14,6 +14,16 @@ A premium, curated collection of serverless, self-contained word puzzles, party 
   * **Dynamic Knowledge Graph**: A custom HTML5 Canvas force-directed graph physics simulation showcasing how your guesses bridge together semantically towards the target word.
   * **Smart Selector**: Dynamically limits target words to the top 700 everyday daily-use terms and prevents repetition using client-side history tracking.
 
+### 🔢 Sudoku (Solo)
+* **Goal**: Fill the 9×9 grid so every row, column, and 3×3 box contains the digits 1–9.
+* **Features**:
+  * Client-side puzzle generator with a backtracking solver that **guarantees a unique solution** for every board.
+  * Four difficulties (Easy, Medium, Hard, Expert) controlling the number of givens.
+  * Pencil **notes** mode, **smart hints**, **undo**, and erase, with full keyboard support (digits, arrows, Backspace, N, H).
+  * Row/column/box peer highlighting, matching-number highlighting, and live conflict/mistake detection.
+  * Number pad showing how many of each digit remain, a running timer, mistake counter, and **best-time stats per difficulty** saved in `localStorage`.
+  * Auto-saves the in-progress board so you can resume after a reload, plus Web Audio synthesized placement, hint, and victory sounds.
+
 ### 💣 Minesweeper (Solo)
 * **Goal**: Clear a 10x10 board without hitting hidden mines.
 * **Features**:
@@ -29,7 +39,7 @@ A premium, curated collection of serverless, self-contained word puzzles, party 
   * Full rules via the embedded `chess.js` engine: castling, en passant, pawn promotion picker, check / checkmate / stalemate / draw detection.
   * Live move list (SAN notation), captured-piece trays, and a running material-advantage counter.
   * **Pass & Play** mode for two players on one device, with board flip and undo.
-  * **Play with a Friend (same Wi-Fi)**: serverless peer-to-peer connection over WebRTC. One player hosts and shares a code; the other pastes it and sends a reply code back — no server, no accounts. Moves, resigns, and rematches sync directly device-to-device.
+  * **Play with a Friend**: dead-simple online play — one player hosts and gets a **4-digit code**, the friend just types it in. Connection is peer-to-peer (PeerJS handles matchmaking); moves, resigns, and rematches then sync directly device-to-device with no accounts.
   * Web Audio synthesized move, capture, castle, check, and game-over sounds.
 
 ### 🔴 Connect Four (2 Player)
