@@ -22,6 +22,16 @@ A premium, curated collection of serverless, self-contained word puzzles, party 
   * Shaking board layout and particle explosions on mine hits.
   * Web Audio synthesized click ticks and bass boom explosion sounds.
 
+### ♟️ Chess (2 Player)
+* **Goal**: Classic chess — checkmate your opponent's king.
+* **Features**:
+  * Premium chess.com-style green board with file/rank coordinates, legal-move dots, capture rings, last-move and check highlighting.
+  * Full rules via the embedded `chess.js` engine: castling, en passant, pawn promotion picker, check / checkmate / stalemate / draw detection.
+  * Live move list (SAN notation), captured-piece trays, and a running material-advantage counter.
+  * **Pass & Play** mode for two players on one device, with board flip and undo.
+  * **Play with a Friend (same Wi-Fi)**: serverless peer-to-peer connection over WebRTC. One player hosts and shares a code; the other pastes it and sends a reply code back — no server, no accounts. Moves, resigns, and rematches sync directly device-to-device.
+  * Web Audio synthesized move, capture, castle, check, and game-over sounds.
+
 ### 🔴 Connect Four (2 Player)
 * **Goal**: Drop chips into a 6x7 grid to align four of your matching colors (Red vs. Yellow).
 * **Features**:

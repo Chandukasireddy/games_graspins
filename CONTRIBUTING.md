@@ -22,6 +22,7 @@ games_graspins/
 │   └── minesweeper/           # Neon classic minesweeper
 │
 ├── two-player/                # 🔴 Local 2-player board games
+│   ├── chess/                 # chess.com-style board + same-Wi-Fi P2P play
 │   ├── connect4/              # Gravity-based Connect Four
 │   ├── dotsandboxes/          # Touch-optimized Dots & Boxes
 │   └── tictactoe/             # Glowing neon Tic-Tac-Toe
