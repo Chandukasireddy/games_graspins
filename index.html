@@ -338,29 +338,23 @@
             background: linear-gradient(135deg, var(--accent) 0%, #ec4899 100%);
             color: #fff;
             border: none;
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 0.8rem;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             transition: var(--transition);
             margin-left: 12px;
             vertical-align: middle;
-            animation: pulse-glow 2s infinite ease-in-out;
         }
 
         .btn-install-header:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-            50% { box-shadow: 0 4px 20px rgba(236, 72, 153, 0.6); }
+            transform: translateY(-1px) scale(1.03);
+            box-shadow: 0 6px 14px rgba(99, 102, 241, 0.3);
         }
 
         /* PWA Install Banner Toast */
@@ -592,7 +586,7 @@
 
         @media (max-width: 640px) {
             .logo { font-size: 2.2rem; }
-            .btn-install-header { margin-left: 8px; padding: 4px 10px; font-size: 0.72rem; }
+            .btn-install-header { margin-left: 6px; padding: 3px 8px; font-size: 0.65rem; }
             .controls-panel { padding: 14px; }
             .search-row { flex-direction: column; }
             .btn-surprise { height: 48px; justify-content: center; }
@@ -623,7 +617,10 @@
         <header>
             <div class="logo">
                 🎮 Graspins Games
-                <button id="btn-install-header" class="btn-install-header" style="display: none;">📲 Get App</button>
+                <button id="btn-install-header" class="btn-install-header" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="12" height="12" style="fill: currentColor; flex-shrink: 0;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Get App
+                </button>
             </div>
             <div class="subtitle">Search, filter, or choose a serverless local puzzle game</div>
         </header>
