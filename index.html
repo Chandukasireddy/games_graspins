@@ -584,6 +584,75 @@
             border-color: var(--accent);
         }
 
+        /* Fullscreen Game Frame */
+        .game-frame-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #060913;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-frame-container.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .game-frame-header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 52px;
+            backdrop-filter: blur(12px);
+        }
+
+        .btn-close-game {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .btn-close-game:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .game-frame-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            background: linear-gradient(135deg, #f8fafc 30%, #6366f1 70%, #ec4899 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .game-iframe {
+            flex: 1;
+            width: 100%;
+            height: calc(100% - 52px);
+            border: none;
+            background: #060913;
+        }
+
         @media (max-width: 640px) {
             .logo { font-size: 2.2rem; }
             .btn-install-header { margin-left: 8px; width: 24px; height: 24px; }
@@ -834,6 +903,18 @@
         <footer>
             &copy; 2026 Graspins Games Portal. All games run entirely client-side.
         </footer>
+    </div>
+
+    <!-- Fullscreen Game Frame Overlay -->
+    <div id="game-frame-container" class="game-frame-container">
+        <header class="game-frame-header">
+            <button id="btn-close-game" class="btn-close-game">
+                <svg viewBox="0 0 24 24" width="16" height="16" style="fill: currentColor; flex-shrink: 0;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                Back to Portal
+            </button>
+            <div id="game-frame-title" class="game-frame-title">Game Title</div>
+        </header>
+        <iframe id="game-iframe" class="game-iframe" src="about:blank"></iframe>
     </div>
 
     <!-- PWA Install Toast Banner -->
@@ -1097,6 +1178,188 @@
                 });
             }
         }
+
+        // PWA Routing and Fuzzy-Redirection System
+        const GAMES_MAP = {
+            'semantix': { path: 'solo/Semantix/index.html', title: '🧠 Semantix' },
+            'sudoku': { path: 'solo/sudoku/index.html', title: '🔢 Sudoku' },
+            'minesweeper': { path: 'solo/minesweeper/index.html', title: '💣 Minesweeper' },
+            'codenames': { path: 'group/codenames/index.html', title: '🕵️ Codenames' },
+            'decrypto': { path: 'http://decrypto.graspins.com/', title: '🔐 Decrypto', external: true },
+            'chess': { path: 'two-player/chess/index.html', title: '♟️ Chess' },
+            'connect4': { path: 'two-player/connect4/index.html', title: '🔴 Connect Four' },
+            'tictactoe': { path: 'two-player/tictactoe/index.html', title: '❌ Tic-Tac-Toe' },
+            'dotsandboxes': { path: 'two-player/dotsandboxes/index.html', title: '📦 Dots & Boxes' },
+            'spy': { path: 'group/spy/index.html', title: '🕶️ Spy' },
+            'justone': { path: 'group/justone/index.html', title: '☝️ Just One' },
+            'cointoss': { path: 'tools/cointoss/index.html', title: '🪙 Coin Toss' },
+            'dice': { path: 'tools/dice/index.html', title: '🎲 Dice Roller' },
+            'mixer': { path: 'tools/mixer/index.html', title: '🎛️ Mixer' }
+        };
+
+        function getCleanSlug(path) {
+            if (!path) return '';
+            let clean = path.replace(/index\.html$/, '')
+                            .replace(/\.html$/, '')
+                            .replace(/^\/+|\/+$/g, '');
+            const parts = clean.split('/');
+            return parts[parts.length - 1].toLowerCase();
+        }
+
+        function levenshteinDistance(s1, s2) {
+            s1 = s1.toLowerCase();
+            s2 = s2.toLowerCase();
+            const m = s1.length, n = s2.length;
+            const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+            for (let i = 0; i <= m; i++) dp[i][0] = i;
+            for (let j = 0; j <= n; j++) dp[0][j] = j;
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (s1[i - 1] === s2[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + 1);
+                    }
+                }
+            }
+            return dp[m][n];
+        }
+
+        function findBestGameMatch(slug) {
+            slug = slug.trim().toLowerCase();
+            if (!slug) return null;
+
+            // 1. Direct match
+            if (GAMES_MAP[slug]) return slug;
+
+            // 2. Contains match
+            for (const key in GAMES_MAP) {
+                if (key.includes(slug) || slug.includes(key)) {
+                    return key;
+                }
+            }
+
+            // 3. Fuzzy Levenshtein match (allow threshold of up to 3 edits)
+            let bestKey = null;
+            let minDistance = 999;
+            for (const key in GAMES_MAP) {
+                const dist = levenshteinDistance(slug, key);
+                if (dist < minDistance && dist <= 3) {
+                    minDistance = dist;
+                    bestKey = key;
+                }
+            }
+            return bestKey;
+        }
+
+        const gameFrameContainer = document.getElementById('game-frame-container');
+        const gameIframe = document.getElementById('game-iframe');
+        const gameFrameTitle = document.getElementById('game-frame-title');
+        const btnCloseGame = document.getElementById('btn-close-game');
+
+        function loadGame(gameKey, replaceState = false) {
+            const game = GAMES_MAP[gameKey];
+            if (!game) return;
+
+            // Decrypto is external - open in new window
+            if (game.external) {
+                window.open(game.path, '_blank', 'noopener,noreferrer');
+                return;
+            }
+
+            gameFrameTitle.textContent = game.title;
+            gameIframe.src = game.path;
+            gameFrameContainer.style.display = 'flex';
+            
+            setTimeout(() => {
+                gameFrameContainer.classList.add('show');
+            }, 10);
+
+            // Update URL to games.graspins.com/gamename
+            const urlPath = '/' + gameKey;
+            if (replaceState) {
+                history.replaceState({ game: gameKey }, '', urlPath);
+            } else {
+                history.pushState({ game: gameKey }, '', urlPath);
+            }
+        }
+
+        function closeGame(skipHistory = false) {
+            gameFrameContainer.classList.remove('show');
+            setTimeout(() => {
+                gameFrameContainer.style.display = 'none';
+                gameIframe.src = 'about:blank'; // Free memory & stop sound
+            }, 300);
+
+            if (!skipHistory) {
+                history.pushState(null, '', '/');
+            }
+        }
+
+        if (btnCloseGame) {
+            btnCloseGame.addEventListener('click', () => closeGame());
+        }
+
+        // Intercept card clicks
+        document.querySelectorAll('.game-card').forEach(card => {
+            const href = card.getAttribute('href');
+            if (!href || href === '#' || card.id === 'game-future') return;
+
+            const isExternal = href.startsWith('http') && !href.includes(window.location.hostname);
+            if (isExternal && !GAMES_MAP[getCleanSlug(href)]?.external) {
+                card.setAttribute('target', '_blank');
+                card.setAttribute('rel', 'noopener noreferrer');
+                return;
+            }
+
+            card.addEventListener('click', (event) => {
+                event.preventDefault();
+                const slug = getCleanSlug(href);
+                const match = findBestGameMatch(slug);
+                if (match) {
+                    loadGame(match);
+                }
+            });
+        });
+
+        // Listen to browser Back/Forward navigation
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.game) {
+                loadGame(event.state.game, true);
+            } else {
+                closeGame(true);
+            }
+        });
+
+        // Initialize Router
+        function handleInitialRouting() {
+            // First check for SPA redirection parameters (e.g. ?p=semantix)
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathParam = urlParams.get('p');
+            if (pathParam) {
+                const cleanSlug = getCleanSlug(pathParam);
+                const match = findBestGameMatch(cleanSlug);
+                if (match) {
+                    // Strip query parameter from visible browser history
+                    history.replaceState(null, '', '/');
+                    loadGame(match, true);
+                    return;
+                }
+            }
+
+            // Fallback: check raw path for direct hits (if server supports serving index.html on arbitrary paths)
+            const path = window.location.pathname;
+            if (path && path !== '/' && !path.endsWith('index.html')) {
+                const cleanSlug = getCleanSlug(path);
+                const match = findBestGameMatch(cleanSlug);
+                if (match) {
+                    loadGame(match, true);
+                }
+            }
+        }
+        
+        // Run routing check
+        handleInitialRouting();
     </script>
 </body>
 </html>
