@@ -6,6 +6,9 @@
     <title>Graspins Games Portal</title>
     <meta name="description" content="Play online word, logic, and local 2-player board games. Select a category or search to find your game.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -330,12 +333,287 @@
             margin-top: 20px;
         }
 
+        /* PWA Styling */
+        .btn-install-header {
+            background: linear-gradient(135deg, var(--accent) 0%, #ec4899 100%);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+            margin-left: 12px;
+            vertical-align: middle;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        .btn-install-header:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(236, 72, 153, 0.6); }
+        }
+
+        /* PWA Install Banner Toast */
+        .pwa-banner {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translate(-50%, 120%);
+            width: 90%;
+            max-width: 480px;
+            background: rgba(10, 15, 30, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .pwa-banner.show {
+            transform: translate(-50%, 0);
+        }
+
+        .pwa-banner-icon {
+            font-size: 2.2rem;
+            flex-shrink: 0;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .pwa-banner-content {
+            flex: 1;
+            text-align: left;
+        }
+
+        .pwa-banner-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .pwa-banner-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .pwa-banner-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-pwa-install {
+            background: linear-gradient(135deg, var(--accent) 0%, #ec4899 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-pwa-install:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-pwa-dismiss {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px;
+            transition: var(--transition);
+        }
+
+        .btn-pwa-dismiss:hover {
+            color: var(--text-primary);
+        }
+
+        /* iOS Install Sheet */
+        .ios-sheet-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .ios-sheet-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ios-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, 100%);
+            width: 100%;
+            max-width: 480px;
+            background: #0f172a;
+            border-top: 1px solid var(--border);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+            z-index: 1002;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+        }
+
+        .ios-sheet.show {
+            transform: translate(-50%, 0);
+        }
+
+        .ios-sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .ios-sheet-header {
+            margin-bottom: 20px;
+        }
+
+        .ios-sheet-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .ios-sheet-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .ios-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: left;
+            margin-bottom: 24px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 16px;
+        }
+
+        .ios-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+        }
+
+        .ios-step-num {
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .ios-step-text {
+            flex: 1;
+        }
+
+        .ios-icon-highlight {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-ios-close {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 12px;
+            width: 100%;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-ios-close:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
         @media (max-width: 640px) {
-            .logo { font-size: 2.4rem; }
+            .logo { font-size: 2.2rem; }
+            .btn-install-header { margin-left: 8px; padding: 4px 10px; font-size: 0.72rem; }
             .controls-panel { padding: 14px; }
             .search-row { flex-direction: column; }
             .btn-surprise { height: 48px; justify-content: center; }
             .game-arrow { display: none; }
+            .pwa-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+                padding: 14px;
+                bottom: 12px;
+            }
+            .pwa-banner-content { text-align: center; }
+            .pwa-banner-actions {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-around;
+                gap: 12px;
+            }
+            .pwa-banner-actions button {
+                flex: 1;
+            }
         }
     </style>
 </head>
@@ -343,7 +621,10 @@
 
     <div class="container">
         <header>
-            <div class="logo">🎮 Graspins Games</div>
+            <div class="logo">
+                🎮 Graspins Games
+                <button id="btn-install-header" class="btn-install-header" style="display: none;">📲 Get App</button>
+            </div>
             <div class="subtitle">Search, filter, or choose a serverless local puzzle game</div>
         </header>
 
@@ -558,6 +839,44 @@
         </footer>
     </div>
 
+    <!-- PWA Install Toast Banner -->
+    <div id="pwa-banner" class="pwa-banner">
+        <div class="pwa-banner-icon">📲</div>
+        <div class="pwa-banner-content">
+            <div class="pwa-banner-title">Play Offline!</div>
+            <div class="pwa-banner-desc">Install Graspins Games on your home screen for quick, offline access.</div>
+        </div>
+        <div class="pwa-banner-actions">
+            <button id="btn-pwa-install" class="btn-pwa-install">Install</button>
+            <button id="btn-pwa-dismiss" class="btn-pwa-dismiss">Later</button>
+        </div>
+    </div>
+
+    <!-- iOS Install Bottom Sheet -->
+    <div id="ios-sheet-backdrop" class="ios-sheet-backdrop"></div>
+    <div id="ios-sheet" class="ios-sheet">
+        <div class="ios-sheet-handle"></div>
+        <div class="ios-sheet-header">
+            <div class="ios-sheet-title">Install on iOS</div>
+            <div class="ios-sheet-subtitle">Add to your home screen for the best app experience</div>
+        </div>
+        <div class="ios-steps">
+            <div class="ios-step">
+                <div class="ios-step-num">1</div>
+                <div class="ios-step-text">Tap the <span class="ios-icon-highlight">Share 📤</span> button in Safari's toolbar.</div>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-num">2</div>
+                <div class="ios-step-text">Scroll down the menu and tap <span class="ios-icon-highlight">Add to Home Screen ➕</span>.</div>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-num">3</div>
+                <div class="ios-step-text">Tap <span class="ios-icon-highlight">Add</span> in the top-right corner to finish.</div>
+            </div>
+        </div>
+        <button id="btn-ios-close" class="btn-ios-close">Got It</button>
+    </div>
+
     <script>
         // Web Audio context for Surprise Me wheel sounds
         let audioCtx = null;
@@ -677,6 +996,110 @@
 
             shuffleCycle();
         });
+
+        // Service Worker registration & PWA installation flow
+        let deferredPrompt = null;
+        
+        // Detect if app is running in standalone mode (installed)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
+        }
+
+        if (!isStandalone) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const btnInstallHeader = document.getElementById('btn-install-header');
+            const pwaBanner = document.getElementById('pwa-banner');
+            const btnPwaInstall = document.getElementById('btn-pwa-install');
+            const btnPwaDismiss = document.getElementById('btn-pwa-dismiss');
+            const iosSheetBackdrop = document.getElementById('ios-sheet-backdrop');
+            const iosSheet = document.getElementById('ios-sheet');
+            const btnIosClose = document.getElementById('btn-ios-close');
+
+            const isDismissed = localStorage.getItem('pwa_dismissed') === 'true';
+
+            // Show iOS specific guide triggering
+            function triggerIOSInstall() {
+                iosSheetBackdrop.classList.add('show');
+                iosSheet.classList.add('show');
+            }
+
+            function closeIOSInstall() {
+                iosSheetBackdrop.classList.remove('show');
+                iosSheet.classList.remove('show');
+            }
+
+            if (isIOS) {
+                if (btnInstallHeader) {
+                    btnInstallHeader.style.display = 'inline-flex';
+                    btnInstallHeader.addEventListener('click', triggerIOSInstall);
+                }
+                
+                // Show iOS sheet banner once after a delay if not dismissed before
+                if (!isDismissed && pwaBanner) {
+                    setTimeout(() => {
+                        pwaBanner.classList.add('show');
+                    }, 3000);
+                }
+
+                if (btnPwaInstall) {
+                    btnPwaInstall.addEventListener('click', () => {
+                        pwaBanner.classList.remove('show');
+                        triggerIOSInstall();
+                    });
+                }
+                
+                if (btnIosClose) btnIosClose.addEventListener('click', closeIOSInstall);
+                if (iosSheetBackdrop) iosSheetBackdrop.addEventListener('click', closeIOSInstall);
+            } else {
+                // Non-iOS flow: Listen for native beforeinstallprompt
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    
+                    if (btnInstallHeader) {
+                        btnInstallHeader.style.display = 'inline-flex';
+                        btnInstallHeader.addEventListener('click', triggerNativeInstall);
+                    }
+
+                    if (!isDismissed && pwaBanner) {
+                        setTimeout(() => {
+                            pwaBanner.classList.add('show');
+                        }, 3000);
+                    }
+                });
+
+                function triggerNativeInstall() {
+                    if (!deferredPrompt) return;
+                    pwaBanner.classList.remove('show');
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                            if (btnInstallHeader) btnInstallHeader.style.display = 'none';
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+
+                if (btnPwaInstall) {
+                    btnPwaInstall.addEventListener('click', triggerNativeInstall);
+                }
+            }
+
+            if (btnPwaDismiss && pwaBanner) {
+                btnPwaDismiss.addEventListener('click', () => {
+                    pwaBanner.classList.remove('show');
+                    localStorage.setItem('pwa_dismissed', 'true');
+                });
+            }
+        }
     </script>
 </body>
 </html>
