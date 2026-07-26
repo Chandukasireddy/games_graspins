@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        // Prevent index.html from ever being rendered inside an iframe overlay (fixes tab-on-tab bug)
+        if (window.self !== window.top) {
+            try { window.parent.postMessage({ type: 'CLOSE_GAME' }, '*'); } catch (e) {}
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Graspins Games Portal</title>
@@ -888,6 +894,18 @@
                 <div class="game-arrow">➔</div>
             </a>
 
+            <!-- SCOREKEEPER -->
+            <a href="tools/scorekeeper/index.html" class="game-card" data-category="tool">
+                <div class="game-info">
+                    <div class="game-title">
+                        🃏 Rummy Scorekeeper
+                        <span class="badge badge--tool">Tool</span>
+                    </div>
+                    <div class="game-desc">Track scores, drops, 101/201 pool eliminations, and dealer rotation for Rummy & card games.</div>
+                </div>
+                <div class="game-arrow">➔</div>
+            </a>
+
             <!-- FUTURE -->
             <div class="game-card game-card--disabled" id="game-future">
                 <div class="game-info">
@@ -953,6 +971,31 @@
             </div>
         </div>
         <button id="btn-ios-close" class="btn-ios-close">Got It</button>
+    </div>
+
+    <!-- Browser Install Fallback Bottom Sheet -->
+    <div id="browser-sheet-backdrop" class="ios-sheet-backdrop"></div>
+    <div id="browser-sheet" class="ios-sheet">
+        <div class="ios-sheet-handle"></div>
+        <div class="ios-sheet-header">
+            <div class="ios-sheet-title">Install Graspins Games</div>
+            <div class="ios-sheet-subtitle">Add app icon to your Desktop or Mobile home screen</div>
+        </div>
+        <div class="ios-steps">
+            <div class="ios-step">
+                <div class="ios-step-num">1</div>
+                <div class="ios-step-text">Click the <span class="ios-icon-highlight">⋮ Menu / Share 📲</span> icon in your browser options or address bar.</div>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-num">2</div>
+                <div class="ios-step-text">Select <span class="ios-icon-highlight">Install Graspins Games</span> or <span class="ios-icon-highlight">Add to Home Screen</span>.</div>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-num">3</div>
+                <div class="ios-step-text">Confirm installation to launch anytime as a standalone app!</div>
+            </div>
+        </div>
+        <button id="btn-browser-close" class="btn-ios-close">Got It</button>
     </div>
 
     <script>
@@ -1075,6 +1118,13 @@
             shuffleCycle();
         });
 
+        // Listen for postMessage from game iframe to close game modal
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'CLOSE_GAME') {
+                closeGame();
+            }
+        });
+
         // Service Worker registration & PWA installation flow
         let deferredPrompt = null;
         
@@ -1084,91 +1134,114 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered successfully:', reg.scope))
-                    .catch(err => console.error('Service Worker registration failed:', err));
+                    .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+                    .catch(err => console.error('[PWA] Service Worker registration failed:', err));
             });
         }
 
+        // Global listener for beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('[PWA] beforeinstallprompt event captured');
+            updateInstallButtonVisibility();
+        });
+
+        // Global listener for appinstalled
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] App installed successfully');
+            deferredPrompt = null;
+            localStorage.setItem('pwa_installed', 'true');
+            updateInstallButtonVisibility();
+            const pwaBanner = document.getElementById('pwa-banner');
+            if (pwaBanner) pwaBanner.classList.remove('show');
+        });
+
+        function updateInstallButtonVisibility() {
+            const btnInstallHeader = document.getElementById('btn-install-header');
+            const isInstalled = localStorage.getItem('pwa_installed') === 'true' || isStandalone;
+            if (btnInstallHeader) {
+                btnInstallHeader.style.display = isInstalled ? 'none' : 'inline-flex';
+            }
+        }
+
         if (!isStandalone) {
+            updateInstallButtonVisibility();
+
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
             const btnInstallHeader = document.getElementById('btn-install-header');
             const pwaBanner = document.getElementById('pwa-banner');
             const btnPwaInstall = document.getElementById('btn-pwa-install');
             const btnPwaDismiss = document.getElementById('btn-pwa-dismiss');
+            
             const iosSheetBackdrop = document.getElementById('ios-sheet-backdrop');
             const iosSheet = document.getElementById('ios-sheet');
             const btnIosClose = document.getElementById('btn-ios-close');
 
+            const browserSheetBackdrop = document.getElementById('browser-sheet-backdrop');
+            const browserSheet = document.getElementById('browser-sheet');
+            const btnBrowserClose = document.getElementById('btn-browser-close');
+
             const isDismissed = localStorage.getItem('pwa_dismissed') === 'true';
 
-            // Show iOS specific guide triggering
-            function triggerIOSInstall() {
-                iosSheetBackdrop.classList.add('show');
-                iosSheet.classList.add('show');
+            function openIOSSheet() {
+                if (iosSheetBackdrop) iosSheetBackdrop.classList.add('show');
+                if (iosSheet) iosSheet.classList.add('show');
             }
 
-            function closeIOSInstall() {
-                iosSheetBackdrop.classList.remove('show');
-                iosSheet.classList.remove('show');
+            function closeIOSSheet() {
+                if (iosSheetBackdrop) iosSheetBackdrop.classList.remove('show');
+                if (iosSheet) iosSheet.classList.remove('show');
             }
 
-            if (isIOS) {
-                if (btnInstallHeader) {
-                    btnInstallHeader.style.display = 'inline-flex';
-                    btnInstallHeader.addEventListener('click', triggerIOSInstall);
-                }
-                
-                // Show iOS sheet banner once after a delay if not dismissed before
-                if (!isDismissed && pwaBanner) {
-                    setTimeout(() => {
-                        pwaBanner.classList.add('show');
-                    }, 3000);
-                }
+            function openBrowserSheet() {
+                if (browserSheetBackdrop) browserSheetBackdrop.classList.add('show');
+                if (browserSheet) browserSheet.classList.add('show');
+            }
 
-                if (btnPwaInstall) {
-                    btnPwaInstall.addEventListener('click', () => {
-                        pwaBanner.classList.remove('show');
-                        triggerIOSInstall();
-                    });
-                }
-                
-                if (btnIosClose) btnIosClose.addEventListener('click', closeIOSInstall);
-                if (iosSheetBackdrop) iosSheetBackdrop.addEventListener('click', closeIOSInstall);
-            } else {
-                // Non-iOS flow: Listen for native beforeinstallprompt
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    deferredPrompt = e;
-                    
-                    if (btnInstallHeader) {
-                        btnInstallHeader.style.display = 'inline-flex';
-                        btnInstallHeader.addEventListener('click', triggerNativeInstall);
-                    }
+            function closeBrowserSheet() {
+                if (browserSheetBackdrop) browserSheetBackdrop.classList.remove('show');
+                if (browserSheet) browserSheet.classList.remove('show');
+            }
 
-                    if (!isDismissed && pwaBanner) {
-                        setTimeout(() => {
-                            pwaBanner.classList.add('show');
-                        }, 3000);
-                    }
-                });
+            function triggerInstallFlow() {
+                if (pwaBanner) pwaBanner.classList.remove('show');
 
-                function triggerNativeInstall() {
-                    if (!deferredPrompt) return;
-                    pwaBanner.classList.remove('show');
+                if (deferredPrompt) {
                     deferredPrompt.prompt();
                     deferredPrompt.userChoice.then((choiceResult) => {
                         if (choiceResult.outcome === 'accepted') {
-                            console.log('User accepted the install prompt');
-                            if (btnInstallHeader) btnInstallHeader.style.display = 'none';
+                            console.log('[PWA] User accepted prompt');
+                            localStorage.setItem('pwa_installed', 'true');
+                            updateInstallButtonVisibility();
                         }
                         deferredPrompt = null;
                     });
+                } else if (isIOS) {
+                    openIOSSheet();
+                } else {
+                    openBrowserSheet();
                 }
+            }
 
-                if (btnPwaInstall) {
-                    btnPwaInstall.addEventListener('click', triggerNativeInstall);
-                }
+            if (btnInstallHeader) {
+                btnInstallHeader.addEventListener('click', triggerInstallFlow);
+            }
+
+            if (btnPwaInstall) {
+                btnPwaInstall.addEventListener('click', triggerInstallFlow);
+            }
+
+            if (btnIosClose) btnIosClose.addEventListener('click', closeIOSSheet);
+            if (iosSheetBackdrop) iosSheetBackdrop.addEventListener('click', closeIOSSheet);
+
+            if (btnBrowserClose) btnBrowserClose.addEventListener('click', closeBrowserSheet);
+            if (browserSheetBackdrop) browserSheetBackdrop.addEventListener('click', closeBrowserSheet);
+
+            if (!isDismissed && !localStorage.getItem('pwa_installed') && pwaBanner) {
+                setTimeout(() => {
+                    pwaBanner.classList.add('show');
+                }, 3000);
             }
 
             if (btnPwaDismiss && pwaBanner) {
@@ -1194,7 +1267,8 @@
             'justone': { path: 'group/justone/index.html', title: '☝️ Just One' },
             'cointoss': { path: 'tools/cointoss/index.html', title: '🪙 Coin Toss' },
             'dice': { path: 'tools/dice/index.html', title: '🎲 Dice Roller' },
-            'mixer': { path: 'tools/mixer/index.html', title: '🎛️ Mixer' }
+            'mixer': { path: 'tools/mixer/index.html', title: '🎛️ Mixer' },
+            'scorekeeper': { path: 'tools/scorekeeper/index.html', title: '🃏 Rummy Scorekeeper' }
         };
 
         function getCleanSlug(path) {

@@ -514,15 +514,28 @@ class SemanticGraphVisualizer {
     this.panStart = { x: 0, y: 0 };
 
     // Physics parameters
-    this.kRepulsion = 1200;
-    this.kAttraction = 0.04;
-    this.d0 = 70; // natural spring length
-    this.gravity = 0.015;
-    this.friction = 0.85;
+    this.kRepulsion = 900;
+    this.kAttraction = 0.035;
+    this.d0 = 75; // natural spring length
+    this.gravity = 0.012;
+    this.friction = 0.82; // Stronger damping to eliminate micro-vibrations
+
+    // Simulation cooling state
+    this.stableFrames = 0;
+    this.isSleeping = false;
+    this.animId = null;
 
     this.initEvents();
     this.resize();
     this.startSimulation();
+  }
+
+  wake() {
+    this.stableFrames = 0;
+    if (this.isSleeping) {
+      this.isSleeping = false;
+      this.startSimulation();
+    }
   }
 
   resize() {
@@ -530,6 +543,7 @@ class SemanticGraphVisualizer {
     const rect = this.canvas.parentNode.getBoundingClientRect();
     this.canvas.width = rect.width || 600;
     this.canvas.height = 420;
+    this.wake();
   }
 
   rebuild() {
@@ -545,7 +559,7 @@ class SemanticGraphVisualizer {
 
     if (!targetWord) return;
 
-    // 1. Add Target Node (center, red ?)
+    // 1. Add Target Node (center)
     newNodes.set(targetWord, {
       id: targetWord,
       label: won ? targetWord : '?',
@@ -559,16 +573,19 @@ class SemanticGraphVisualizer {
       vx: 0, vy: 0
     });
 
-    // --- Helpers ---
+    const parentDegrees = new Map();
+    parentDegrees.set(targetWord, 0);
 
-    // Find the most similar existing node in the graph for a given word
     const findBestParent = (word) => {
       let bestParent = targetWord;
       let bestSim = -Infinity;
-      for (const [nodeId, node] of newNodes.entries()) {
+      for (const [nodeId] of newNodes.entries()) {
         if (nodeId === word) continue;
-        const sim = this.game.engine.getSimilarity(word, nodeId);
-        if (sim !== null && sim > bestSim) {
+        const deg = parentDegrees.get(nodeId) || 0;
+        // Anti-clustering penalty if parent already has many connected children
+        const capPenalty = nodeId === targetWord ? (deg > 10 ? 0.05 : 0) : (deg > 4 ? 0.12 : 0);
+        const sim = (this.game.engine.getSimilarity(word, nodeId) || -1) - capPenalty;
+        if (sim > bestSim) {
           bestSim = sim;
           bestParent = nodeId;
         }
@@ -576,7 +593,6 @@ class SemanticGraphVisualizer {
       return { parentId: bestParent, similarity: bestSim };
     };
 
-    // Find a bridge word between two endpoints
     const findBridgeWord = (fromWord, toWord, excludeSet) => {
       let bestWord = null;
       let bestSim = -Infinity;
@@ -595,11 +611,14 @@ class SemanticGraphVisualizer {
       return bestWord;
     };
 
-    // Create a mystery node
+    let mysteryCount = 0;
+    const maxMysteryNodes = 12; // Limit mystery bridge clutter
+
     const makeMysteryNode = (word, posX, posY) => {
       const existing = this.nodes.get(word);
       const simToTarget = this.game.engine.getSimilarity(word, targetWord) || 0;
       const score = Math.round(simToTarget * 10000) / 100;
+      mysteryCount++;
       return {
         id: word,
         label: '?',
@@ -616,24 +635,16 @@ class SemanticGraphVisualizer {
 
     const guessedSet = new Set(guesses.map(g => g.word));
     const usedBridges = new Set();
-
-    // 2. Sort guesses by score descending so the most relevant words
-    //    get placed first, creating a better tree structure.
-    //    Highly relevant words anchor near the target, and less relevant
-    //    ones branch off from their nearest neighbor.
     const sortedGuesses = [...guesses].sort((a, b) => b.score - a.score);
 
     for (const g of sortedGuesses) {
       const word = g.word;
-
-      // Handle winning guess
       if (word === targetWord) {
         const tNode = newNodes.get(targetWord);
         if (tNode) { tNode.isGuessed = true; tNode.label = targetWord; }
         continue;
       }
 
-      // If this word already exists (was placed as a mystery node), reveal it
       let existing = newNodes.get(word);
       if (existing) {
         existing.isMystery = false;
@@ -641,14 +652,16 @@ class SemanticGraphVisualizer {
         existing.label = word;
         existing.score = g.score;
         existing.rank = g.rank;
-        // Already connected via edges, skip edge creation
         continue;
       }
 
-      // Place new node
+      const { parentId, similarity } = findBestParent(word);
+      const parentNode = newNodes.get(parentId) || newNodes.get(targetWord);
       const oldNode = this.nodes.get(word);
+
       const angle = Math.random() * Math.PI * 2;
-      const dist = 100 + Math.random() * 60;
+      const dist = 75 + Math.random() * 40;
+
       newNodes.set(word, {
         id: word,
         label: word,
@@ -657,42 +670,29 @@ class SemanticGraphVisualizer {
         isMystery: false,
         score: g.score,
         rank: g.rank,
-        x: oldNode ? oldNode.x : cx + Math.cos(angle) * dist,
-        y: oldNode ? oldNode.y : cy + Math.sin(angle) * dist,
+        x: oldNode ? oldNode.x : parentNode.x + Math.cos(angle) * dist,
+        y: oldNode ? oldNode.y : parentNode.y + Math.sin(angle) * dist,
         vx: 0, vy: 0
       });
 
-      // Cold word (score < 0): no edges, drifts to border
-      if (g.score < 0) continue;
+      if (g.score < 0) continue; // Cold word
 
-      // Find the best parent — the most similar node already in the graph
-      const { parentId, similarity } = findBestParent(word);
+      parentDegrees.set(parentId, (parentDegrees.get(parentId) || 0) + 1);
 
-      // Determine chain depth based on similarity to the parent
-      // High similarity to parent → direct link
-      // Lower similarity → bridge nodes to show the gap
       const simPercent = Math.round(similarity * 10000) / 100;
-      let chainDepth;
-      if (simPercent >= 35) {
-        chainDepth = 0; // Direct connection, very related
-      } else if (simPercent >= 15) {
-        chainDepth = 1; // 1 mystery bridge
-      } else {
-        chainDepth = 2; // 2 mystery bridges, shows a bigger gap
-      }
+      let chainDepth = simPercent >= 35 ? 0 : (simPercent >= 15 ? 1 : 2);
+      if (mysteryCount >= maxMysteryNodes) chainDepth = 0;
 
       if (chainDepth === 0) {
-        // Direct edge to best parent
         newEdges.push({ source: parentId, target: word });
       } else {
-        // Build a bridge chain: parent -> bridge(s) -> guess
         let prevNodeId = parentId;
         const localExclude = new Set([...usedBridges, ...guessedSet]);
 
         for (let d = 0; d < chainDepth; d++) {
           const bridgeWord = findBridgeWord(prevNodeId, word, localExclude);
 
-          if (bridgeWord) {
+          if (bridgeWord && mysteryCount < maxMysteryNodes) {
             if (!newNodes.has(bridgeWord)) {
               const prevN = newNodes.get(prevNodeId);
               const guessN = newNodes.get(word);
@@ -706,49 +706,59 @@ class SemanticGraphVisualizer {
             newEdges.push({ source: prevNodeId, target: bridgeWord });
             prevNodeId = bridgeWord;
           } else {
-            break; // No bridge found, connect directly
+            break;
           }
         }
-        // Final edge to the guess word
         newEdges.push({ source: prevNodeId, target: word });
       }
     }
 
     this.nodes = newNodes;
     this.edges = newEdges;
+    this.wake();
   }
 
   tick() {
     const nodesArr = Array.from(this.nodes.values());
     const width = this.canvas.width;
     const height = this.canvas.height;
+    const N = nodesArr.length;
 
-    // Repulsion
-    for (let i = 0; i < nodesArr.length; i++) {
+    // Dynamic physical scaling for large word graphs
+    const dynamicD0 = Math.min(135, 68 + Math.sqrt(N) * 6);
+    const dynamicGravity = Math.max(0.003, 0.015 / (1 + N * 0.015));
+
+    // 1. Softened Repulsion & Physical Body Collision
+    for (let i = 0; i < N; i++) {
       const n1 = nodesArr[i];
-      for (let j = i + 1; j < nodesArr.length; j++) {
+      for (let j = i + 1; j < N; j++) {
         const n2 = nodesArr[j];
         const dx = n2.x - n1.x;
         const dy = n2.y - n1.y;
-        const distSq = dx * dx + dy * dy || 1;
+        const distSq = dx * dx + dy * dy + 400; // Epsilon preventing force explosions
         const dist = Math.sqrt(distSq);
 
-        const force = this.kRepulsion / distSq;
+        const force = Math.min(this.kRepulsion / distSq, 5.0);
         const fx = (dx / dist) * force;
         const fy = (dy / dist) * force;
 
-        if (n1 !== this.draggedNode) {
-          n1.vx -= fx;
-          n1.vy -= fy;
-        }
-        if (n2 !== this.draggedNode) {
-          n2.vx += fx;
-          n2.vy += fy;
+        if (n1 !== this.draggedNode) { n1.vx -= fx; n1.vy -= fy; }
+        if (n2 !== this.draggedNode) { n2.vx += fx; n2.vy += fy; }
+
+        // Hard separation radius to prevent overlap/clustering
+        const minSep = (n1.isTarget || n2.isTarget) ? 44 : 34;
+        if (dist < minSep) {
+          const overlap = minSep - dist;
+          const nx = (dx / dist) || 1;
+          const ny = (dy / dist) || 1;
+          const push = overlap * 0.45;
+          if (n1 !== this.draggedNode) { n1.x -= nx * push; n1.y -= ny * push; }
+          if (n2 !== this.draggedNode) { n2.x += nx * push; n2.y += ny * push; }
         }
       }
     }
 
-    // Attraction
+    // 2. Attraction along edges
     for (const edge of this.edges) {
       const n1 = this.nodes.get(edge.source);
       const n2 = this.nodes.get(edge.target);
@@ -758,31 +768,26 @@ class SemanticGraphVisualizer {
       const dy = n2.y - n1.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-      const force = this.kAttraction * (dist - this.d0);
+      const force = this.kAttraction * (dist - dynamicD0);
       const fx = (dx / dist) * force;
       const fy = (dy / dist) * force;
 
-      if (n1 !== this.draggedNode) {
-        n1.vx += fx;
-        n1.vy += fy;
-      }
-      if (n2 !== this.draggedNode) {
-        n2.vx -= fx;
-        n2.vy -= fy;
-      }
+      if (n1 !== this.draggedNode) { n1.vx += fx; n1.vy += fy; }
+      if (n2 !== this.draggedNode) { n2.vx -= fx; n2.vy -= fy; }
     }
 
-    // Build a set of connected node IDs
     const connectedNodes = new Set();
     for (const edge of this.edges) {
       connectedNodes.add(edge.source);
       connectedNodes.add(edge.target);
     }
 
-    // Gravity and updates
+    // 3. Gravity, Boundaries & Kinetic Energy tracking
     const cx = width / 2;
     const cy = height / 2;
-    const padding = 20;
+    const padding = 24;
+    let totalSpeedSq = 0;
+
     for (const n of nodesArr) {
       if (n === this.draggedNode) {
         n.x = Math.max(padding, Math.min(width - padding, n.x));
@@ -791,39 +796,51 @@ class SemanticGraphVisualizer {
       }
 
       if (connectedNodes.has(n.id) || n.isTarget) {
-        // Connected or target node: pull to center
-        n.vx += (cx - n.x) * this.gravity;
-        n.vy += (cy - n.y) * this.gravity;
+        n.vx += (cx - n.x) * dynamicGravity;
+        n.vy += (cy - n.y) * dynamicGravity;
       } else {
-        // Isolated/cold word: pull to the nearest boundary edge
         const dLeft = n.x;
         const dRight = width - n.x;
         const dTop = n.y;
         const dBottom = height - n.y;
         const minDist = Math.min(dLeft, dRight, dTop, dBottom);
-        const pullForce = 0.08;
+        const pullForce = 0.06;
 
-        if (minDist === dLeft) {
-          n.vx += (padding - n.x) * pullForce;
-        } else if (minDist === dRight) {
-          n.vx += (width - padding - n.x) * pullForce;
-        } else if (minDist === dTop) {
-          n.vy += (padding - n.y) * pullForce;
-        } else {
-          n.vy += (height - padding - n.y) * pullForce;
-        }
+        if (minDist === dLeft) n.vx += (padding - n.x) * pullForce;
+        else if (minDist === dRight) n.vx += (width - padding - n.x) * pullForce;
+        else if (minDist === dTop) n.vy += (padding - n.y) * pullForce;
+        else n.vy += (height - padding - n.y) * pullForce;
       }
 
       n.vx *= this.friction;
       n.vy *= this.friction;
+
+      const vMag = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+      const maxV = 6.0;
+      if (vMag > maxV) {
+        n.vx = (n.vx / vMag) * maxV;
+        n.vy = (n.vy / vMag) * maxV;
+      }
+
       n.x += n.vx;
       n.y += n.vy;
 
-      // Keep them strictly bounded within the canvas box
+      totalSpeedSq += n.vx * n.vx + n.vy * n.vy;
+
       if (n.x < padding) { n.x = padding; n.vx = 0; }
       if (n.x > width - padding) { n.x = width - padding; n.vx = 0; }
       if (n.y < padding) { n.y = padding; n.vy = 0; }
       if (n.y > height - padding) { n.y = height - padding; n.vy = 0; }
+    }
+
+    // 4. Energy Decay / Sleep Activation
+    if (totalSpeedSq < 0.04 && !this.draggedNode) {
+      this.stableFrames++;
+      if (this.stableFrames > 35) {
+        this.isSleeping = true;
+      }
+    } else {
+      this.stableFrames = 0;
     }
   }
 
@@ -844,11 +861,9 @@ class SemanticGraphVisualizer {
       const dy = n2.y - n1.y;
       const len = Math.sqrt(dx * dx + dy * dy) || 1;
 
-      // Determine edge style based on node types
       const hasMystery = n1.isMystery || n2.isMystery;
       const hasTarget = n1.isTarget || n2.isTarget;
 
-      // Edge color: gradient from source to target color
       let edgeColor, glowColor;
       if (hasMystery) {
         edgeColor = 'rgba(59, 130, 246, 0.85)';
@@ -1028,6 +1043,7 @@ class SemanticGraphVisualizer {
     };
 
     const handleDown = (e) => {
+      this.wake();
       const pos = getMousePos(e);
       const node = findNodeAt(pos.worldX, pos.worldY);
 
@@ -1041,14 +1057,18 @@ class SemanticGraphVisualizer {
 
     const handleMove = (e) => {
       const pos = getMousePos(e);
+      const prevHovered = this.hoveredNode;
       this.hoveredNode = findNodeAt(pos.worldX, pos.worldY);
+      if (prevHovered !== this.hoveredNode) this.wake();
 
       if (this.draggedNode) {
+        this.wake();
         this.draggedNode.x = pos.worldX;
         this.draggedNode.y = pos.worldY;
         this.draggedNode.vx = 0;
         this.draggedNode.vy = 0;
       } else if (this.isPanning) {
+        this.wake();
         this.transform.x = pos.rawX - this.panStart.x;
         this.transform.y = pos.rawY - this.panStart.y;
       }
@@ -1057,6 +1077,7 @@ class SemanticGraphVisualizer {
     const handleUp = () => {
       this.draggedNode = null;
       this.isPanning = false;
+      this.wake();
     };
 
     this.canvas.addEventListener('mousedown', handleDown);
@@ -1069,6 +1090,7 @@ class SemanticGraphVisualizer {
 
     this.canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
+      this.wake();
       const pos = getMousePos(e);
       const zoomFactor = 1.1;
       const nextScale = e.deltaY < 0
@@ -1082,6 +1104,7 @@ class SemanticGraphVisualizer {
   }
 
   zoom(factor) {
+    this.wake();
     const cx = this.canvas.width / 2;
     const cy = this.canvas.height / 2;
     const worldX = (cx - this.transform.x) / this.transform.scale;
@@ -1094,6 +1117,7 @@ class SemanticGraphVisualizer {
   }
 
   resetView() {
+    this.wake();
     this.transform = { x: 0, y: 0, scale: 1.0 };
     const targetWord = this.game.targetWord;
     if (this.nodes.has(targetWord)) {
@@ -1104,12 +1128,18 @@ class SemanticGraphVisualizer {
   }
 
   startSimulation() {
+    if (this.animId) cancelAnimationFrame(this.animId);
     const loop = () => {
+      if (this.isSleeping) {
+        this.render();
+        this.animId = null;
+        return;
+      }
       this.tick();
       this.render();
-      requestAnimationFrame(loop);
+      this.animId = requestAnimationFrame(loop);
     };
-    requestAnimationFrame(loop);
+    this.animId = requestAnimationFrame(loop);
   }
 }
 

@@ -151,6 +151,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         backLink.style.color = '#5a5142';
         backLink.style.transform = 'translateX(0)';
       };
+      backLink.onclick = (e) => {
+        if (window.self !== window.top) {
+          e.preventDefault();
+          window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+        }
+      };
       document.body.prepend(backLink);
     } catch (e) {
       console.error('Failed to inject back link:', e);

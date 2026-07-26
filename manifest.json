@@ -2,8 +2,11 @@
   "name": "Graspins Games Portal",
   "short_name": "Graspins Games",
   "description": "Play online word, logic, and local 2-player board games. Fully playable offline.",
+  "id": "/",
+  "scope": "./",
   "start_url": "./index.html",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#060913",
   "theme_color": "#060913",
   "orientation": "any",
@@ -20,6 +23,29 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Semantix",
+      "short_name": "Semantix",
+      "description": "Guess the word by semantic similarity",
+      "url": "./index.html?p=semantix",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sudoku",
+      "short_name": "Sudoku",
+      "description": "Classic Sudoku puzzle game",
+      "url": "./index.html?p=sudoku",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Minesweeper",
+      "short_name": "Minesweeper",
+      "description": "Classic logic mine clearer",
+      "url": "./index.html?p=minesweeper",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

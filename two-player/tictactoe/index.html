@@ -76,6 +76,7 @@
             margin-bottom: 4px;
             background: linear-gradient(to right, #3b82f6, #ec4899);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -352,6 +353,15 @@
 
     <div class="container">
         <a href="../../index.html" class="back-link">➔ Back to Games</a>
+        <script>
+            document.addEventListener('click', function(e) {
+                const backBtn = e.target.closest('.back-link, #back-link, #backButton');
+                if (backBtn && window.self !== window.top) {
+                    e.preventDefault();
+                    window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+                }
+            });
+        </script>
 
         <header>
             <h1 class="title">Tic-Tac-Toe</h1>

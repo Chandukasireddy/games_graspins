@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rummy Scorekeeper — Graspins Games</title>
+    <meta name="description" content="Sleek Rummy & Card Game points notepad and scorekeeper. Track drops, eliminations, dealer rotation, and pool scores.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #060913;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-hover: rgba(30, 41, 59, 0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --border-highlight: rgba(99, 102, 241, 0.4);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-page);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.1) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 860px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+            transform: translateX(-3px);
+        }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-icon {
+            font-size: 2.2rem;
+            filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+        }
+
+        .title-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f8fafc 30%, #6366f1 70%, #ec4899 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .btn:hover {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        .btn-danger {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: rgba(244, 63, 94, 0.3);
+            color: #f43f5e;
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 63, 94, 0.25);
+            border-color: #f43f5e;
+        }
+
+        /* Config Bar */
+        .config-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .config-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .select-input, .text-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .select-input:focus, .text-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Scoreboard Cards Grid */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 14px;
+        }
+
+        .player-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .player-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+        }
+
+        .player-card.is-dealer {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .player-card.is-eliminated {
+            opacity: 0.55;
+            filter: grayscale(0.6);
+            border-color: rgba(244, 63, 94, 0.3);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .player-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .player-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #ec4899);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .player-name-input {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            padding: 2px 4px;
+            border-radius: 6px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .player-name-input:focus, .player-name-input:hover {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: var(--border);
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-dealer {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+        }
+
+        .badge-out {
+            background: rgba(244, 63, 94, 0.2);
+            color: #f43f5e;
+            border: 1px solid rgba(244, 63, 94, 0.4);
+        }
+
+        .badge-rank {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .score-display {
+            text-align: center;
+            margin: 6px 0;
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        .score-safe { color: var(--green); }
+        .score-warning { color: var(--amber); }
+        .score-danger { color: var(--rose); }
+
+        .score-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+        }
+
+        /* Entry Section */
+        .entry-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .entry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .entry-row {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .entry-player-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90px;
+        }
+
+        .quick-btn-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-quick {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 5px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-quick:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .score-input-field {
+            width: 55px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        .score-input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+
+        /* History Table */
+        .history-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.88rem;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .round-num {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .btn-del-round {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            transition: var(--transition);
+        }
+
+        .btn-del-round:hover {
+            color: var(--rose);
+        }
+
+        @media (max-width: 600px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .config-card { flex-direction: column; align-items: stretch; }
+            .players-grid { grid-template-columns: 1fr 1fr; }
+            .entry-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div>
+                <a href="../../index.html" class="back-link">➔ Back to Games</a>
+                <div class="title-group" style="margin-top: 6px;">
+                    <span class="title-icon">🃏</span>
+                    <h1 class="title-text">Rummy Scorekeeper</h1>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" id="btn-add-player">➕ Add Player</button>
+                <button class="btn btn-danger" id="btn-reset-game">🔄 New Game</button>
+                <button class="btn" id="btn-share-summary">📋 Share</button>
+            </div>
+        </header>
+
+        <!-- Game Config Bar -->
+        <div class="config-card">
+            <div class="config-group">
+                <span class="config-label">Game Mode:</span>
+                <select id="select-mode" class="select-input">
+                    <option value="101">101 Pool Rummy</option>
+                    <option value="201" selected>201 Pool Rummy</option>
+                    <option value="points">Points / Deals Rummy</option>
+                </select>
+            </div>
+            <div class="config-group">
+                <span class="config-label">Elimination Limit:</span>
+                <input type="number" id="input-limit" class="text-input" value="201" style="width: 75px; text-align: center;">
+            </div>
+            <div class="config-group">
+                <button class="btn" id="btn-next-dealer" title="Rotate Dealer">🎴 Rotate Dealer</button>
+            </div>
+        </div>
+
+        <!-- Player Cards Grid -->
+        <div id="players-grid" class="players-grid"></div>
+
+        <!-- Add Round Section -->
+        <div class="entry-card">
+            <div class="section-header">
+                <div class="section-title">
+                    <span>✏️ Enter Round Scores</span>
+                    <span id="round-indicator" class="badge badge-dealer">Round 1</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" id="btn-clear-entry">Clear</button>
+                    <button class="btn btn-primary" id="btn-submit-round">Submit Round ➔</button>
+                </div>
+            </div>
+            <div id="entry-grid" class="entry-grid"></div>
+        </div>
+
+        <!-- Score History Table -->
+        <div class="history-card">
+            <div class="section-header" style="margin-bottom: 12px;">
+                <div class="section-title">📊 Score History</div>
+                <button class="btn" id="btn-undo-round">↩️ Undo Last Round</button>
+            </div>
+            <table id="history-table">
+                <thead>
+                    <tr id="history-thead-tr">
+                        <th>Round</th>
+                        <!-- Player headers dynamically inserted -->
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <!-- Round rows dynamically inserted -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Back link handler for portal iframe integration
+        document.addEventListener('click', function(e) {
+            const backBtn = e.target.closest('.back-link, #back-link, #backButton');
+            if (backBtn && window.self !== window.top) {
+                e.preventDefault();
+                window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+            }
+        });
+
+        // Web Audio sound effects
+        let audioCtx = null;
+        function playSound(freq = 600, duration = 0.08) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        // State Management
+        const STORAGE_KEY = 'graspins_rummy_scorekeeper_v1';
+
+        let state = {
+            mode: '201',
+            limit: 201,
+            dealerIndex: 0,
+            players: [
+                { id: 1, name: 'Player 1', avatar: 'P1' },
+                { id: 2, name: 'Player 2', avatar: 'P2' },
+                { id: 3, name: 'Player 3', avatar: 'P3' }
+            ],
+            rounds: [] // array of objects: { roundNum, scores: { playerId: score } }
+        };
+
+        // Load saved state from LocalStorage if available
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && Array.isArray(parsed.players) && parsed.players.length > 0) {
+                        state = parsed;
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch(e) {}
+        }
+
+        // Calculation Helpers
+        function getPlayerTotal(playerId) {
+            return state.rounds.reduce((sum, r) => sum + (r.scores[playerId] || 0), 0);
+        }
+
+        function getPlayerLastScore(playerId) {
+            if (state.rounds.length === 0) return 0;
+            return state.rounds[state.rounds.length - 1].scores[playerId] || 0;
+        }
+
+        function isEliminated(playerId) {
+            if (state.mode === 'points') return false;
+            return getPlayerTotal(playerId) >= state.limit;
+        }
+
+        function getPlayerRankings() {
+            const totals = state.players.map(p => ({
+                id: p.id,
+                total: getPlayerTotal(p.id),
+                eliminated: isEliminated(p.id)
+            }));
+            totals.sort((a, b) => {
+                if (a.eliminated !== b.eliminated) return a.eliminated ? 1 : -1;
+                return a.total - b.total;
+            });
+            const ranks = {};
+            totals.forEach((item, index) => {
+                ranks[item.id] = index + 1;
+            });
+            return ranks;
+        }
+
+        // Render Functions
+        function render() {
+            renderConfig();
+            renderPlayersGrid();
+            renderEntryGrid();
+            renderHistoryTable();
+            saveState();
+        }
+
+        function renderConfig() {
+            const selectMode = document.getElementById('select-mode');
+            const inputLimit = document.getElementById('input-limit');
+            const roundIndicator = document.getElementById('round-indicator');
+
+            selectMode.value = state.mode;
+            inputLimit.value = state.limit;
+            roundIndicator.textContent = `Round ${state.rounds.length + 1}`;
+        }
+
+        function renderPlayersGrid() {
+            const container = document.getElementById('players-grid');
+            container.innerHTML = '';
+            const ranks = getPlayerRankings();
+
+            state.players.forEach((player, index) => {
+                const total = getPlayerTotal(player.id);
+                const lastScore = getPlayerLastScore(player.id);
+                const eliminated = isEliminated(player.id);
+                const isDealer = (index === state.dealerIndex);
+                const rank = ranks[player.id];
+
+                let scoreClass = 'score-safe';
+                if (state.mode !== 'points') {
+                    const ratio = total / state.limit;
+                    if (ratio >= 1) scoreClass = 'score-danger';
+                    else if (ratio >= 0.75) scoreClass = 'score-warning';
+                }
+
+                const card = document.createElement('div');
+                card.className = `player-card ${isDealer ? 'is-dealer' : ''} ${eliminated ? 'is-eliminated' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="card-top">
+                        <div class="player-name-wrapper">
+                            <div class="player-avatar" style="background: ${getAvatarColor(player.id)}">
+                                ${player.avatar || player.name.charAt(0).toUpperCase()}
+                            </div>
+                            <input type="text" class="player-name-input" value="${escapeHtml(player.name)}" data-id="${player.id}" title="Click to rename">
+                        </div>
+                        ${eliminated ? '<span class="badge badge-out">OUT</span>' : (isDealer ? '<span class="badge badge-dealer">DEALER</span>' : `<span class="badge badge-rank">#${rank}</span>`)}
+                    </div>
+                    <div class="score-display">
+                        <div class="score-number ${scoreClass}">${total}</div>
+                        <div class="score-label">${eliminated ? 'Eliminated' : 'Total Points'}</div>
+                    </div>
+                    <div class="card-stats">
+                        <span>Last: <strong>${lastScore}</strong></span>
+                        <button class="btn-del-round" data-action="remove-player" data-id="${player.id}" title="Remove player">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Name update listeners
+            container.querySelectorAll('.player-name-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const pId = parseInt(e.target.getAttribute('data-id'));
+                    const p = state.players.find(x => x.id === pId);
+                    if (p) {
+                        p.name = e.target.value.trim() || `Player ${pId}`;
+                        p.avatar = p.name.charAt(0).toUpperCase();
+                        render();
+                    }
+                });
+            });
+
+            // Remove player listener
+            container.querySelectorAll('[data-action="remove-player"]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const pId = parseInt(e.target.getAttribute('data-id'));
+                    if (state.players.length <= 2) {
+                        alert('Minimum 2 players required!');
+                        return;
+                    }
+                    if (confirm('Remove this player from game?')) {
+                        state.players = state.players.filter(x => x.id !== pId);
+                        state.dealerIndex = state.dealerIndex % state.players.length;
+                        render();
+                    }
+                });
+            });
+        }
+
+        function renderEntryGrid() {
+            const container = document.getElementById('entry-grid');
+            container.innerHTML = '';
+
+            state.players.forEach(player => {
+                const eliminated = isEliminated(player.id);
+                const row = document.createElement('div');
+                row.className = 'entry-row';
+                if (eliminated) row.style.opacity = '0.4';
+
+                row.innerHTML = `
+                    <span class="entry-player-name">${escapeHtml(player.name)}</span>
+                    <div class="quick-btn-group">
+                        <button class="btn-quick" data-id="${player.id}" data-val="0">0 (Win)</button>
+                        <button class="btn-quick" data-id="${player.id}" data-val="20">20 (Drop)</button>
+                        <button class="btn-quick" data-id="${player.id}" data-val="40">40 (Mid)</button>
+                        <button class="btn-quick" data-id="${player.id}" data-val="80">80 (Full)</button>
+                    </div>
+                    <input type="number" class="score-input-field" id="entry-score-${player.id}" data-id="${player.id}" value="${eliminated ? 0 : ''}" min="0" max="200" ${eliminated ? 'disabled' : ''}>
+                `;
+                container.appendChild(row);
+            });
+
+            // Quick button click events
+            container.querySelectorAll('.btn-quick').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const pId = e.target.getAttribute('data-id');
+                    const val = e.target.getAttribute('data-val');
+                    const input = document.getElementById(`entry-score-${pId}`);
+                    if (input && !input.disabled) {
+                        input.value = val;
+                        playSound(700, 0.05);
+                    }
+                });
+            });
+        }
+
+        function renderHistoryTable() {
+            const theadTr = document.getElementById('history-thead-tr');
+            const tbody = document.getElementById('history-tbody');
+
+            // Header columns
+            theadTr.innerHTML = '<th>Round</th>';
+            state.players.forEach(p => {
+                const th = document.createElement('th');
+                th.textContent = p.name;
+                theadTr.appendChild(th);
+            });
+            const thAction = document.createElement('th');
+            thAction.textContent = 'Action';
+            theadTr.appendChild(thAction);
+
+            // Body rows
+            tbody.innerHTML = '';
+            if (state.rounds.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${state.players.length + 2}" style="color: var(--text-secondary); padding: 20px;">No rounds recorded yet. Enter scores above!</td></tr>`;
+                return;
+            }
+
+            state.rounds.forEach((r, rIndex) => {
+                const tr = document.createElement('tr');
+                let html = `<td class="round-num">#${r.roundNum}</td>`;
+                state.players.forEach(p => {
+                    const s = r.scores[p.id] !== undefined ? r.scores[p.id] : '-';
+                    const isWin = s === 0;
+                    html += `<td style="${isWin ? 'color: var(--green); font-weight: 800;' : ''}">${s}</td>`;
+                });
+                html += `<td><button class="btn-del-round" data-rindex="${rIndex}" title="Delete Round">❌</button></td>`;
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+
+            // Delete round listeners
+            tbody.querySelectorAll('.btn-del-round').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.getAttribute('data-rindex'));
+                    state.rounds.splice(idx, 1);
+                    // Renumber remaining rounds
+                    state.rounds.forEach((r, i) => r.roundNum = i + 1);
+                    playSound(400, 0.1);
+                    render();
+                });
+            });
+        }
+
+        // Helper Utilities
+        function getAvatarColor(id) {
+            const colors = [
+                'linear-gradient(135deg, #6366f1, #ec4899)',
+                'linear-gradient(135deg, #10b981, #3b82f6)',
+                'linear-gradient(135deg, #f59e0b, #ef4444)',
+                'linear-gradient(135deg, #8b5cf6, #06b6d4)',
+                'linear-gradient(135deg, #ec4899, #f43f5e)',
+                'linear-gradient(135deg, #14b8a6, #84cc16)'
+            ];
+            return colors[(id - 1) % colors.length];
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // DOM Event Listeners
+        document.getElementById('select-mode').addEventListener('change', (e) => {
+            state.mode = e.target.value;
+            if (state.mode === '101') state.limit = 101;
+            else if (state.mode === '201') state.limit = 201;
+            render();
+        });
+
+        document.getElementById('input-limit').addEventListener('change', (e) => {
+            state.limit = parseInt(e.target.value) || 201;
+            render();
+        });
+
+        document.getElementById('btn-add-player').addEventListener('click', () => {
+            if (state.players.length >= 8) {
+                alert('Maximum 8 players allowed!');
+                return;
+            }
+            const nextId = state.players.length > 0 ? Math.max(...state.players.map(p => p.id)) + 1 : 1;
+            const newName = `Player ${nextId}`;
+            state.players.push({ id: nextId, name: newName, avatar: `P${nextId}` });
+            playSound(800, 0.08);
+            render();
+        });
+
+        document.getElementById('btn-next-dealer').addEventListener('click', () => {
+            state.dealerIndex = (state.dealerIndex + 1) % state.players.length;
+            playSound(550, 0.06);
+            render();
+        });
+
+        document.getElementById('btn-submit-round').addEventListener('click', () => {
+            const currentScores = {};
+            let hasInput = false;
+
+            state.players.forEach(p => {
+                if (isEliminated(p.id)) {
+                    currentScores[p.id] = 0;
+                } else {
+                    const input = document.getElementById(`entry-score-${p.id}`);
+                    const val = input ? parseInt(input.value) : NaN;
+                    currentScores[p.id] = isNaN(val) ? 0 : Math.max(0, val);
+                    if (input && input.value !== '') hasInput = true;
+                }
+            });
+
+            if (!hasInput && state.rounds.length > 0) {
+                if (!confirm('All input fields are empty. Submit round with 0s?')) return;
+            }
+
+            state.rounds.push({
+                roundNum: state.rounds.length + 1,
+                scores: currentScores
+            });
+
+            // Automatically rotate dealer for next round
+            state.dealerIndex = (state.dealerIndex + 1) % state.players.length;
+            playSound(900, 0.1);
+            render();
+        });
+
+        document.getElementById('btn-clear-entry').addEventListener('click', () => {
+            state.players.forEach(p => {
+                const input = document.getElementById(`entry-score-${p.id}`);
+                if (input && !input.disabled) input.value = '';
+            });
+        });
+
+        document.getElementById('btn-undo-round').addEventListener('click', () => {
+            if (state.rounds.length === 0) return;
+            state.rounds.pop();
+            state.dealerIndex = (state.dealerIndex - 1 + state.players.length) % state.players.length;
+            playSound(450, 0.08);
+            render();
+        });
+
+        document.getElementById('btn-reset-game').addEventListener('click', () => {
+            if (confirm('Start a new game? All round history will be reset.')) {
+                state.rounds = [];
+                state.dealerIndex = 0;
+                playSound(300, 0.15);
+                render();
+            }
+        });
+
+        document.getElementById('btn-share-summary').addEventListener('click', () => {
+            const ranks = getPlayerRankings();
+            let summary = `🃏 *Rummy Game Score Summary*\n`;
+            summary += `Mode: ${state.mode === 'points' ? 'Points Rummy' : state.mode + ' Pool'}\n`;
+            summary += `Rounds Played: ${state.rounds.length}\n\n`;
+
+            state.players.forEach(p => {
+                const total = getPlayerTotal(p.id);
+                const rank = ranks[p.id];
+                const out = isEliminated(p.id);
+                summary += `#${rank} ${p.name}: ${total} pts ${out ? '❌ (Out)' : '✅'}\n`;
+            });
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(summary);
+                alert('Game summary copied to clipboard!');
+            } else {
+                alert(summary);
+            }
+        });
+
+        // Initialize App
+        loadState();
+        render();
+    </script>
+</body>
+</html>

@@ -20,6 +20,15 @@
     <div class="app">
         <div class="container">
             <a href="../../index.html" class="back-link" style="text-decoration: none; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-top: 16px; margin-bottom: 8px; transition: all 0.25s ease;" onmouseover="this.style.color='var(--text-primary)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.color='var(--text-secondary)'; this.style.transform='translateX(0)'">➔ Back to Games</a>
+            <script>
+                document.addEventListener('click', function(e) {
+                    const backBtn = e.target.closest('.back-link, #back-link, #backButton');
+                    if (backBtn && window.self !== window.top) {
+                        e.preventDefault();
+                        window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+                    }
+                });
+            </script>
 
             <!-- LOADING -->
             <div id="loader" class="loader">

@@ -167,6 +167,15 @@ textarea.code{width:100%;height:84px;background:#060913;border:1px solid var(--b
 <body>
 
 <a href="../../index.html" class="back-link" onmouseover="this.style.color='#f8fafc'" onmouseout="this.style.color='var(--text-secondary)'">➔ Back to Games</a>
+<script>
+    document.addEventListener('click', function(e) {
+        const backBtn = e.target.closest('.back-link, #back-link, #backButton');
+        if (backBtn && window.self !== window.top) {
+            e.preventDefault();
+            window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+        }
+    });
+</script>
 
 <header class="title">
     <div class="logo">♟️ Graspins Chess</div>
