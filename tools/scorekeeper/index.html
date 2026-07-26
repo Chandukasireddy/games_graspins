@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rummy Scorekeeper — Graspins Games</title>
-    <meta name="description" content="Sleek Rummy & Card Game points notepad and scorekeeper. Track drops, eliminations, dealer rotation, and pool scores.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+    <title>Universal Scorekeeper — Graspins Games</title>
+    <meta name="description" content="Simple, universal game score keeper. Write player names and track points in an interactive table for card games, board games, and sports.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-page: #060913;
-            --bg-card: rgba(17, 24, 39, 0.7);
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --bg-cell: rgba(15, 23, 42, 0.8);
             --bg-hover: rgba(30, 41, 59, 0.8);
             --border: rgba(255, 255, 255, 0.1);
-            --border-highlight: rgba(99, 102, 241, 0.4);
+            --border-active: rgba(99, 102, 241, 0.5);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --accent: #6366f1;
@@ -23,7 +24,7 @@
             --rose: #f43f5e;
             --radius: 16px;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -37,7 +38,7 @@
             background: var(--bg-page);
             background-image: 
                 radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
-                radial-gradient(circle at 100% 100%, rgba(244, 63, 94, 0.1) 0%, transparent 50%);
+                radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.08) 0%, transparent 50%);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
@@ -48,20 +49,20 @@
 
         .container {
             width: 100%;
-            max-width: 860px;
+            max-width: 900px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
-        /* Header */
+        /* Header Navigation */
         header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin-top: 10px;
+            margin-top: 6px;
         }
 
         .back-link {
@@ -83,7 +84,8 @@
         .title-group {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            margin-top: 4px;
         }
 
         .title-icon {
@@ -102,14 +104,16 @@
 
         .header-actions {
             display: flex;
+            align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .btn {
             background: rgba(30, 41, 59, 0.8);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 12px;
             font-family: inherit;
             font-size: 0.85rem;
@@ -119,6 +123,7 @@
             align-items: center;
             gap: 6px;
             transition: var(--transition);
+            white-space: nowrap;
         }
 
         .btn:hover {
@@ -149,344 +154,205 @@
             border-color: #f43f5e;
         }
 
-        /* Config Bar */
-        .config-card {
+        /* Controls Panel */
+        .controls-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             backdrop-filter: blur(16px);
             border-radius: var(--radius);
-            padding: 16px 20px;
+            padding: 14px 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 12px;
             box-shadow: var(--shadow);
         }
 
-        .config-group {
+        .win-rule-toggle {
             display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .config-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .select-input, .text-input {
             background: rgba(15, 23, 42, 0.8);
             border: 1px solid var(--border);
-            color: #fff;
-            padding: 8px 12px;
             border-radius: 10px;
+            padding: 3px;
+        }
+
+        .rule-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 8px;
             font-family: inherit;
-            font-size: 0.9rem;
-            outline: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
             transition: var(--transition);
         }
 
-        .select-input:focus, .text-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+        .rule-btn.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
         }
 
-        /* Scoreboard Cards Grid */
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-            gap: 14px;
-        }
-
-        .player-card {
+        /* Main Score Table Container */
+        .table-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             backdrop-filter: blur(16px);
             border-radius: var(--radius);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            position: relative;
+            padding: 18px;
             box-shadow: var(--shadow);
-            transition: var(--transition);
+            overflow-x: auto;
         }
 
-        .player-card:hover {
-            border-color: var(--border-highlight);
-            transform: translateY(-2px);
+        .score-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 6px;
+            text-align: center;
         }
 
-        .player-card.is-dealer {
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.25);
+        /* Table Headers (Player Names) */
+        .th-player {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 8px;
+            min-width: 120px;
+            position: relative;
         }
 
-        .player-card.is-eliminated {
-            opacity: 0.55;
-            filter: grayscale(0.6);
-            border-color: rgba(244, 63, 94, 0.3);
-        }
-
-        .card-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .player-name-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-
-        .player-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #ec4899);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.85rem;
-            flex-shrink: 0;
+        .th-player.is-leader {
+            border-color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.1);
         }
 
         .player-name-input {
+            width: 100%;
             background: transparent;
-            border: 1px solid transparent;
+            border: none;
             color: var(--text-primary);
             font-family: inherit;
             font-size: 1rem;
-            font-weight: 700;
-            width: 100%;
-            padding: 2px 4px;
-            border-radius: 6px;
+            font-weight: 800;
+            text-align: center;
             outline: none;
+            padding: 4px;
+            border-radius: 6px;
             transition: var(--transition);
         }
 
         .player-name-input:focus, .player-name-input:hover {
             background: rgba(15, 23, 42, 0.6);
-            border-color: var(--border);
         }
 
-        .badge {
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .badge-dealer {
-            background: rgba(99, 102, 241, 0.2);
-            color: #818cf8;
-            border: 1px solid rgba(99, 102, 241, 0.4);
-        }
-
-        .badge-out {
-            background: rgba(244, 63, 94, 0.2);
-            color: #f43f5e;
-            border: 1px solid rgba(244, 63, 94, 0.4);
-        }
-
-        .badge-rank {
-            background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.4);
-        }
-
-        .score-display {
-            text-align: center;
-            margin: 6px 0;
-        }
-
-        .score-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1;
-        }
-
-        .score-safe { color: var(--green); }
-        .score-warning { color: var(--amber); }
-        .score-danger { color: var(--rose); }
-
-        .score-label {
+        .btn-remove-player {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--rose);
+            color: #fff;
+            border: none;
             font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            font-weight: 600;
-        }
-
-        .card-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border);
-            padding-top: 8px;
-        }
-
-        /* Entry Section */
-        .entry-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(16px);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .entry-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
-        }
-
-        .entry-row {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border);
-            padding: 10px 14px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .entry-player-name {
-            font-weight: 700;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 90px;
-        }
-
-        .quick-btn-group {
-            display: flex;
-            gap: 4px;
-        }
-
-        .btn-quick {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 5px 8px;
-            border-radius: 6px;
             cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .th-player:hover .btn-remove-player {
+            display: flex;
+        }
+
+        .leader-crown {
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        /* Totals Row */
+        .tr-totals td {
+            padding: 12px 8px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .tr-totals td.total-leader {
+            color: var(--amber);
+            border-color: var(--amber);
+        }
+
+        /* Score Cells & Inputs */
+        .td-round-label {
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            white-space: nowrap;
+            width: 70px;
+        }
+
+        .td-score-cell {
+            background: var(--bg-cell);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0;
             transition: var(--transition);
         }
 
-        .btn-quick:hover {
-            background: var(--accent);
+        .td-score-cell:focus-within {
             border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+            background: rgba(30, 41, 59, 0.9);
         }
 
-        .score-input-field {
-            width: 55px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid var(--border);
+        .cell-input {
+            width: 100%;
+            height: 44px;
+            background: transparent;
+            border: none;
             color: #fff;
-            padding: 6px 8px;
-            border-radius: 8px;
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 1.05rem;
             font-weight: 700;
             text-align: center;
             outline: none;
-        }
-
-        .score-input-field:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
-        }
-
-        /* History Table */
-        .history-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(16px);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            font-size: 0.88rem;
-        }
-
-        th, td {
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            color: var(--text-secondary);
-            font-weight: 700;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        tbody tr:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .round-num {
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        .btn-del-round {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1rem;
             padding: 4px;
-            transition: var(--transition);
         }
 
-        .btn-del-round:hover {
-            color: var(--rose);
+        /* Bottom Quick Add Bar */
+        .quick-add-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
         }
 
         @media (max-width: 600px) {
             header { flex-direction: column; align-items: flex-start; }
-            .config-card { flex-direction: column; align-items: stretch; }
-            .players-grid { grid-template-columns: 1fr 1fr; }
-            .entry-grid { grid-template-columns: 1fr; }
+            .controls-card { flex-direction: column; align-items: stretch; }
+            .cell-input { height: 40px; font-size: 0.95rem; }
+            .th-player { min-width: 90px; }
         }
     </style>
 </head>
@@ -497,72 +363,51 @@
         <header>
             <div>
                 <a href="../../index.html" class="back-link">➔ Back to Games</a>
-                <div class="title-group" style="margin-top: 6px;">
-                    <span class="title-icon">🃏</span>
-                    <h1 class="title-text">Rummy Scorekeeper</h1>
+                <div class="title-group">
+                    <span class="title-icon">📝</span>
+                    <h1 class="title-text">Universal Scorekeeper</h1>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="btn" id="btn-add-player">➕ Add Player</button>
-                <button class="btn btn-danger" id="btn-reset-game">🔄 New Game</button>
-                <button class="btn" id="btn-share-summary">📋 Share</button>
+                <button class="btn btn-primary" id="btn-add-player">➕ Add Player</button>
+                <button class="btn btn-primary" id="btn-add-round">➕ Add Round</button>
+                <button class="btn btn-danger" id="btn-reset">🔄 Reset All</button>
+                <button class="btn" id="btn-share">📋 Share</button>
             </div>
         </header>
 
-        <!-- Game Config Bar -->
-        <div class="config-card">
-            <div class="config-group">
-                <span class="config-label">Game Mode:</span>
-                <select id="select-mode" class="select-input">
-                    <option value="101">101 Pool Rummy</option>
-                    <option value="201" selected>201 Pool Rummy</option>
-                    <option value="points">Points / Deals Rummy</option>
-                </select>
+        <!-- Controls Card -->
+        <div class="controls-card">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">Winning Rule:</span>
+                <div class="win-rule-toggle">
+                    <button class="rule-btn active" id="rule-high" data-rule="high">🏆 Highest Wins</button>
+                    <button class="rule-btn" id="rule-low" data-rule="low">🎯 Lowest Wins (Rummy/Golf)</button>
+                </div>
             </div>
-            <div class="config-group">
-                <span class="config-label">Elimination Limit:</span>
-                <input type="number" id="input-limit" class="text-input" value="201" style="width: 75px; text-align: center;">
-            </div>
-            <div class="config-group">
-                <button class="btn" id="btn-next-dealer" title="Rotate Dealer">🎴 Rotate Dealer</button>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">
+                Click names or cells to edit directly • Auto-saves locally
             </div>
         </div>
 
-        <!-- Player Cards Grid -->
-        <div id="players-grid" class="players-grid"></div>
-
-        <!-- Add Round Section -->
-        <div class="entry-card">
-            <div class="section-header">
-                <div class="section-title">
-                    <span>✏️ Enter Round Scores</span>
-                    <span id="round-indicator" class="badge badge-dealer">Round 1</span>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn" id="btn-clear-entry">Clear</button>
-                    <button class="btn btn-primary" id="btn-submit-round">Submit Round ➔</button>
-                </div>
-            </div>
-            <div id="entry-grid" class="entry-grid"></div>
-        </div>
-
-        <!-- Score History Table -->
-        <div class="history-card">
-            <div class="section-header" style="margin-bottom: 12px;">
-                <div class="section-title">📊 Score History</div>
-                <button class="btn" id="btn-undo-round">↩️ Undo Last Round</button>
-            </div>
-            <table id="history-table">
+        <!-- Scoreboard Table Card -->
+        <div class="table-card">
+            <table class="score-table">
                 <thead>
-                    <tr id="history-thead-tr">
-                        <th>Round</th>
-                        <!-- Player headers dynamically inserted -->
-                        <th>Action</th>
+                    <tr id="tr-header">
+                        <th class="td-round-label">Round</th>
+                        <!-- Player Column Headers dynamically generated -->
                     </tr>
                 </thead>
-                <tbody id="history-tbody">
-                    <!-- Round rows dynamically inserted -->
+                <tbody id="tbody-rounds">
+                    <!-- Round rows dynamically generated -->
                 </tbody>
+                <tfoot>
+                    <tr id="tr-totals" class="tr-totals">
+                        <td class="td-round-label" style="font-weight: 800; color: var(--text-primary); font-size: 1rem;">TOTAL</td>
+                        <!-- Total cells dynamically generated -->
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -596,22 +441,17 @@
             } catch(e) {}
         }
 
-        // State Management
-        const STORAGE_KEY = 'graspins_rummy_scorekeeper_v1';
+        // App State
+        const STORAGE_KEY = 'graspins_universal_scorekeeper_v2';
 
         let state = {
-            mode: '201',
-            limit: 201,
-            dealerIndex: 0,
-            players: [
-                { id: 1, name: 'Player 1', avatar: 'P1' },
-                { id: 2, name: 'Player 2', avatar: 'P2' },
-                { id: 3, name: 'Player 3', avatar: 'P3' }
-            ],
-            rounds: [] // array of objects: { roundNum, scores: { playerId: score } }
+            winRule: 'high', // 'high' or 'low'
+            players: ['Player 1', 'Player 2', 'Player 3'],
+            rounds: [
+                [0, 0, 0] // array of score rows (each row is an array of numbers corresponding to players)
+            ]
         };
 
-        // Load saved state from LocalStorage if available
         function loadState() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -630,341 +470,230 @@
             } catch(e) {}
         }
 
-        // Calculation Helpers
-        function getPlayerTotal(playerId) {
-            return state.rounds.reduce((sum, r) => sum + (r.scores[playerId] || 0), 0);
-        }
-
-        function getPlayerLastScore(playerId) {
-            if (state.rounds.length === 0) return 0;
-            return state.rounds[state.rounds.length - 1].scores[playerId] || 0;
-        }
-
-        function isEliminated(playerId) {
-            if (state.mode === 'points') return false;
-            return getPlayerTotal(playerId) >= state.limit;
-        }
-
-        function getPlayerRankings() {
-            const totals = state.players.map(p => ({
-                id: p.id,
-                total: getPlayerTotal(p.id),
-                eliminated: isEliminated(p.id)
-            }));
-            totals.sort((a, b) => {
-                if (a.eliminated !== b.eliminated) return a.eliminated ? 1 : -1;
-                return a.total - b.total;
+        function getTotals() {
+            const totals = new Array(state.players.length).fill(0);
+            state.rounds.forEach(row => {
+                row.forEach((score, pIdx) => {
+                    if (pIdx < totals.length) {
+                        totals[pIdx] += (score || 0);
+                    }
+                });
             });
-            const ranks = {};
-            totals.forEach((item, index) => {
-                ranks[item.id] = index + 1;
-            });
-            return ranks;
+            return totals;
         }
 
-        // Render Functions
-        function render() {
-            renderConfig();
-            renderPlayersGrid();
-            renderEntryGrid();
-            renderHistoryTable();
-            saveState();
-        }
-
-        function renderConfig() {
-            const selectMode = document.getElementById('select-mode');
-            const inputLimit = document.getElementById('input-limit');
-            const roundIndicator = document.getElementById('round-indicator');
-
-            selectMode.value = state.mode;
-            inputLimit.value = state.limit;
-            roundIndicator.textContent = `Round ${state.rounds.length + 1}`;
-        }
-
-        function renderPlayersGrid() {
-            const container = document.getElementById('players-grid');
-            container.innerHTML = '';
-            const ranks = getPlayerRankings();
-
-            state.players.forEach((player, index) => {
-                const total = getPlayerTotal(player.id);
-                const lastScore = getPlayerLastScore(player.id);
-                const eliminated = isEliminated(player.id);
-                const isDealer = (index === state.dealerIndex);
-                const rank = ranks[player.id];
-
-                let scoreClass = 'score-safe';
-                if (state.mode !== 'points') {
-                    const ratio = total / state.limit;
-                    if (ratio >= 1) scoreClass = 'score-danger';
-                    else if (ratio >= 0.75) scoreClass = 'score-warning';
+        function getLeaders() {
+            const totals = getTotals();
+            if (totals.length === 0) return [];
+            
+            let bestScore = state.winRule === 'high' ? -Infinity : Infinity;
+            totals.forEach(t => {
+                if (state.winRule === 'high') {
+                    if (t > bestScore) bestScore = t;
+                } else {
+                    if (t < bestScore) bestScore = t;
                 }
-
-                const card = document.createElement('div');
-                card.className = `player-card ${isDealer ? 'is-dealer' : ''} ${eliminated ? 'is-eliminated' : ''}`;
-                
-                card.innerHTML = `
-                    <div class="card-top">
-                        <div class="player-name-wrapper">
-                            <div class="player-avatar" style="background: ${getAvatarColor(player.id)}">
-                                ${player.avatar || player.name.charAt(0).toUpperCase()}
-                            </div>
-                            <input type="text" class="player-name-input" value="${escapeHtml(player.name)}" data-id="${player.id}" title="Click to rename">
-                        </div>
-                        ${eliminated ? '<span class="badge badge-out">OUT</span>' : (isDealer ? '<span class="badge badge-dealer">DEALER</span>' : `<span class="badge badge-rank">#${rank}</span>`)}
-                    </div>
-                    <div class="score-display">
-                        <div class="score-number ${scoreClass}">${total}</div>
-                        <div class="score-label">${eliminated ? 'Eliminated' : 'Total Points'}</div>
-                    </div>
-                    <div class="card-stats">
-                        <span>Last: <strong>${lastScore}</strong></span>
-                        <button class="btn-del-round" data-action="remove-player" data-id="${player.id}" title="Remove player">🗑️</button>
-                    </div>
-                `;
-                container.appendChild(card);
             });
 
-            // Name update listeners
-            container.querySelectorAll('.player-name-input').forEach(input => {
-                input.addEventListener('change', (e) => {
-                    const pId = parseInt(e.target.getAttribute('data-id'));
-                    const p = state.players.find(x => x.id === pId);
-                    if (p) {
-                        p.name = e.target.value.trim() || `Player ${pId}`;
-                        p.avatar = p.name.charAt(0).toUpperCase();
-                        render();
-                    }
-                });
+            // Return indices of leaders
+            const leaders = [];
+            totals.forEach((t, i) => {
+                if (t === bestScore) leaders.push(i);
             });
-
-            // Remove player listener
-            container.querySelectorAll('[data-action="remove-player"]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const pId = parseInt(e.target.getAttribute('data-id'));
-                    if (state.players.length <= 2) {
-                        alert('Minimum 2 players required!');
-                        return;
-                    }
-                    if (confirm('Remove this player from game?')) {
-                        state.players = state.players.filter(x => x.id !== pId);
-                        state.dealerIndex = state.dealerIndex % state.players.length;
-                        render();
-                    }
-                });
-            });
+            return leaders;
         }
 
-        function renderEntryGrid() {
-            const container = document.getElementById('entry-grid');
-            container.innerHTML = '';
+        function render() {
+            const totals = getTotals();
+            const leaders = getLeaders();
 
-            state.players.forEach(player => {
-                const eliminated = isEliminated(player.id);
-                const row = document.createElement('div');
-                row.className = 'entry-row';
-                if (eliminated) row.style.opacity = '0.4';
+            // 1. Render Header (Players)
+            const trHeader = document.getElementById('tr-header');
+            trHeader.innerHTML = '<th class="td-round-label">Round</th>';
 
-                row.innerHTML = `
-                    <span class="entry-player-name">${escapeHtml(player.name)}</span>
-                    <div class="quick-btn-group">
-                        <button class="btn-quick" data-id="${player.id}" data-val="0">0 (Win)</button>
-                        <button class="btn-quick" data-id="${player.id}" data-val="20">20 (Drop)</button>
-                        <button class="btn-quick" data-id="${player.id}" data-val="40">40 (Mid)</button>
-                        <button class="btn-quick" data-id="${player.id}" data-val="80">80 (Full)</button>
-                    </div>
-                    <input type="number" class="score-input-field" id="entry-score-${player.id}" data-id="${player.id}" value="${eliminated ? 0 : ''}" min="0" max="200" ${eliminated ? 'disabled' : ''}>
-                `;
-                container.appendChild(row);
-            });
-
-            // Quick button click events
-            container.querySelectorAll('.btn-quick').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const pId = e.target.getAttribute('data-id');
-                    const val = e.target.getAttribute('data-val');
-                    const input = document.getElementById(`entry-score-${pId}`);
-                    if (input && !input.disabled) {
-                        input.value = val;
-                        playSound(700, 0.05);
-                    }
-                });
-            });
-        }
-
-        function renderHistoryTable() {
-            const theadTr = document.getElementById('history-thead-tr');
-            const tbody = document.getElementById('history-tbody');
-
-            // Header columns
-            theadTr.innerHTML = '<th>Round</th>';
-            state.players.forEach(p => {
+            state.players.forEach((pName, pIdx) => {
+                const isLeader = leaders.includes(pIdx);
                 const th = document.createElement('th');
-                th.textContent = p.name;
-                theadTr.appendChild(th);
+                th.className = `th-player ${isLeader ? 'is-leader' : ''}`;
+                th.innerHTML = `
+                    ${isLeader ? '<div class="leader-crown">👑</div>' : '<div style="height: 18px;"></div>'}
+                    <input type="text" class="player-name-input" value="${escapeHtml(pName)}" data-pidx="${pIdx}">
+                    ${state.players.length > 1 ? `<button class="btn-remove-player" data-pidx="${pIdx}" title="Remove player">✕</button>` : ''}
+                `;
+                trHeader.appendChild(th);
             });
-            const thAction = document.createElement('th');
-            thAction.textContent = 'Action';
-            theadTr.appendChild(thAction);
 
-            // Body rows
+            // 2. Render Rounds
+            const tbody = document.getElementById('tbody-rounds');
             tbody.innerHTML = '';
-            if (state.rounds.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${state.players.length + 2}" style="color: var(--text-secondary); padding: 20px;">No rounds recorded yet. Enter scores above!</td></tr>`;
-                return;
-            }
 
-            state.rounds.forEach((r, rIndex) => {
+            state.rounds.forEach((row, rIdx) => {
                 const tr = document.createElement('tr');
-                let html = `<td class="round-num">#${r.roundNum}</td>`;
-                state.players.forEach(p => {
-                    const s = r.scores[p.id] !== undefined ? r.scores[p.id] : '-';
-                    const isWin = s === 0;
-                    html += `<td style="${isWin ? 'color: var(--green); font-weight: 800;' : ''}">${s}</td>`;
+                let rowHtml = `<td class="td-round-label">#${rIdx + 1}</td>`;
+
+                state.players.forEach((_, pIdx) => {
+                    const score = row[pIdx] !== undefined ? row[pIdx] : '';
+                    rowHtml += `
+                        <td class="td-score-cell">
+                            <input type="number" class="cell-input" value="${score !== '' && score !== 0 ? score : (score === 0 ? 0 : '')}" placeholder="0" data-ridx="${rIdx}" data-pidx="${pIdx}">
+                        </td>
+                    `;
                 });
-                html += `<td><button class="btn-del-round" data-rindex="${rIndex}" title="Delete Round">❌</button></td>`;
-                tr.innerHTML = html;
+                tr.innerHTML = rowHtml;
                 tbody.appendChild(tr);
             });
 
-            // Delete round listeners
-            tbody.querySelectorAll('.btn-del-round').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = parseInt(e.target.getAttribute('data-rindex'));
-                    state.rounds.splice(idx, 1);
-                    // Renumber remaining rounds
-                    state.rounds.forEach((r, i) => r.roundNum = i + 1);
-                    playSound(400, 0.1);
+            // 3. Render Totals Row
+            const trTotals = document.getElementById('tr-totals');
+            trTotals.innerHTML = '<td class="td-round-label" style="font-weight: 800; color: var(--text-primary); font-size: 0.95rem;">TOTAL</td>';
+
+            state.players.forEach((_, pIdx) => {
+                const isLeader = leaders.includes(pIdx);
+                const td = document.createElement('td');
+                td.className = isLeader ? 'total-leader' : '';
+                td.textContent = totals[pIdx] || 0;
+                trTotals.appendChild(td);
+            });
+
+            // 4. Bind Input Listeners
+            bindEvents();
+            saveState();
+        }
+
+        function bindEvents() {
+            // Player name edit
+            document.querySelectorAll('.player-name-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const pIdx = parseInt(e.target.getAttribute('data-pidx'));
+                    state.players[pIdx] = e.target.value.trim() || `Player ${pIdx + 1}`;
                     render();
+                });
+            });
+
+            // Remove player button
+            document.querySelectorAll('.btn-remove-player').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const pIdx = parseInt(e.target.getAttribute('data-pidx'));
+                    if (state.players.length <= 1) return;
+                    state.players.splice(pIdx, 1);
+                    state.rounds.forEach(r => r.splice(pIdx, 1));
+                    playSound(400, 0.08);
+                    render();
+                });
+            });
+
+            // Score cell edits
+            document.querySelectorAll('.cell-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const rIdx = parseInt(e.target.getAttribute('data-ridx'));
+                    const pIdx = parseInt(e.target.getAttribute('data-pidx'));
+                    const val = e.target.value !== '' ? parseInt(e.target.value) : 0;
+                    
+                    if (!state.rounds[rIdx]) state.rounds[rIdx] = [];
+                    state.rounds[rIdx][pIdx] = isNaN(val) ? 0 : val;
+                    playSound(650, 0.04);
+                    render();
+                });
+
+                // Auto-advance to next cell on Enter
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const rIdx = parseInt(e.target.getAttribute('data-ridx'));
+                        const pIdx = parseInt(e.target.getAttribute('data-pidx'));
+
+                        if (pIdx < state.players.length - 1) {
+                            const nextInput = document.querySelector(`.cell-input[data-ridx="${rIdx}"][data-pidx="${pIdx + 1}"]`);
+                            if (nextInput) nextInput.focus();
+                        } else if (rIdx < state.rounds.length - 1) {
+                            const nextInput = document.querySelector(`.cell-input[data-ridx="${rIdx + 1}"][data-pidx="0"]`);
+                            if (nextInput) nextInput.focus();
+                        } else {
+                            // Hit enter on last cell -> add new round automatically!
+                            addRound();
+                        }
+                    }
                 });
             });
         }
 
-        // Helper Utilities
-        function getAvatarColor(id) {
-            const colors = [
-                'linear-gradient(135deg, #6366f1, #ec4899)',
-                'linear-gradient(135deg, #10b981, #3b82f6)',
-                'linear-gradient(135deg, #f59e0b, #ef4444)',
-                'linear-gradient(135deg, #8b5cf6, #06b6d4)',
-                'linear-gradient(135deg, #ec4899, #f43f5e)',
-                'linear-gradient(135deg, #14b8a6, #84cc16)'
-            ];
-            return colors[(id - 1) % colors.length];
+        function addPlayer() {
+            const nextNum = state.players.length + 1;
+            state.players.push(`Player ${nextNum}`);
+            state.rounds.forEach(r => r.push(0));
+            playSound(750, 0.08);
+            render();
+        }
+
+        function addRound() {
+            const newRow = new Array(state.players.length).fill(0);
+            state.rounds.push(newRow);
+            playSound(850, 0.08);
+            render();
+            // Focus first input of new round
+            setTimeout(() => {
+                const firstCell = document.querySelector(`.cell-input[data-ridx="${state.rounds.length - 1}"][data-pidx="0"]`);
+                if (firstCell) firstCell.focus();
+            }, 50);
         }
 
         function escapeHtml(str) {
             return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // DOM Event Listeners
-        document.getElementById('select-mode').addEventListener('change', (e) => {
-            state.mode = e.target.value;
-            if (state.mode === '101') state.limit = 101;
-            else if (state.mode === '201') state.limit = 201;
+        // Global Control Events
+        document.getElementById('btn-add-player').addEventListener('click', addPlayer);
+        document.getElementById('btn-add-round').addEventListener('click', addRound);
+
+        document.getElementById('rule-high').addEventListener('click', () => {
+            state.winRule = 'high';
+            document.getElementById('rule-high').classList.add('active');
+            document.getElementById('rule-low').classList.remove('active');
             render();
         });
 
-        document.getElementById('input-limit').addEventListener('change', (e) => {
-            state.limit = parseInt(e.target.value) || 201;
+        document.getElementById('rule-low').addEventListener('click', () => {
+            state.winRule = 'low';
+            document.getElementById('rule-low').classList.add('active');
+            document.getElementById('rule-high').classList.remove('active');
             render();
         });
 
-        document.getElementById('btn-add-player').addEventListener('click', () => {
-            if (state.players.length >= 8) {
-                alert('Maximum 8 players allowed!');
-                return;
-            }
-            const nextId = state.players.length > 0 ? Math.max(...state.players.map(p => p.id)) + 1 : 1;
-            const newName = `Player ${nextId}`;
-            state.players.push({ id: nextId, name: newName, avatar: `P${nextId}` });
-            playSound(800, 0.08);
-            render();
-        });
-
-        document.getElementById('btn-next-dealer').addEventListener('click', () => {
-            state.dealerIndex = (state.dealerIndex + 1) % state.players.length;
-            playSound(550, 0.06);
-            render();
-        });
-
-        document.getElementById('btn-submit-round').addEventListener('click', () => {
-            const currentScores = {};
-            let hasInput = false;
-
-            state.players.forEach(p => {
-                if (isEliminated(p.id)) {
-                    currentScores[p.id] = 0;
-                } else {
-                    const input = document.getElementById(`entry-score-${p.id}`);
-                    const val = input ? parseInt(input.value) : NaN;
-                    currentScores[p.id] = isNaN(val) ? 0 : Math.max(0, val);
-                    if (input && input.value !== '') hasInput = true;
-                }
-            });
-
-            if (!hasInput && state.rounds.length > 0) {
-                if (!confirm('All input fields are empty. Submit round with 0s?')) return;
-            }
-
-            state.rounds.push({
-                roundNum: state.rounds.length + 1,
-                scores: currentScores
-            });
-
-            // Automatically rotate dealer for next round
-            state.dealerIndex = (state.dealerIndex + 1) % state.players.length;
-            playSound(900, 0.1);
-            render();
-        });
-
-        document.getElementById('btn-clear-entry').addEventListener('click', () => {
-            state.players.forEach(p => {
-                const input = document.getElementById(`entry-score-${p.id}`);
-                if (input && !input.disabled) input.value = '';
-            });
-        });
-
-        document.getElementById('btn-undo-round').addEventListener('click', () => {
-            if (state.rounds.length === 0) return;
-            state.rounds.pop();
-            state.dealerIndex = (state.dealerIndex - 1 + state.players.length) % state.players.length;
-            playSound(450, 0.08);
-            render();
-        });
-
-        document.getElementById('btn-reset-game').addEventListener('click', () => {
-            if (confirm('Start a new game? All round history will be reset.')) {
-                state.rounds = [];
-                state.dealerIndex = 0;
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            if (confirm('Reset scores for all rounds? Player names will be kept.')) {
+                state.rounds = [new Array(state.players.length).fill(0)];
                 playSound(300, 0.15);
                 render();
             }
         });
 
-        document.getElementById('btn-share-summary').addEventListener('click', () => {
-            const ranks = getPlayerRankings();
-            let summary = `🃏 *Rummy Game Score Summary*\n`;
-            summary += `Mode: ${state.mode === 'points' ? 'Points Rummy' : state.mode + ' Pool'}\n`;
-            summary += `Rounds Played: ${state.rounds.length}\n\n`;
+        document.getElementById('btn-share').addEventListener('click', () => {
+            const totals = getTotals();
+            const leaders = getLeaders();
 
-            state.players.forEach(p => {
-                const total = getPlayerTotal(p.id);
-                const rank = ranks[p.id];
-                const out = isEliminated(p.id);
-                summary += `#${rank} ${p.name}: ${total} pts ${out ? '❌ (Out)' : '✅'}\n`;
+            let text = `📝 *Scorekeeper Game Results*\n`;
+            text += `Rule: ${state.winRule === 'high' ? 'Highest Wins' : 'Lowest Wins'}\n`;
+            text += `Rounds: ${state.rounds.length}\n\n`;
+
+            state.players.forEach((pName, pIdx) => {
+                const isLeader = leaders.includes(pIdx);
+                text += `${isLeader ? '👑 ' : '• '}${pName}: ${totals[pIdx] || 0} pts\n`;
             });
 
             if (navigator.clipboard) {
-                navigator.clipboard.writeText(summary);
-                alert('Game summary copied to clipboard!');
+                navigator.clipboard.writeText(text);
+                alert('Score summary copied to clipboard!');
             } else {
-                alert(summary);
+                alert(text);
             }
         });
 
-        // Initialize App
+        // Initialize
         loadState();
+        if (state.winRule === 'low') {
+            document.getElementById('rule-low').classList.add('active');
+            document.getElementById('rule-high').classList.remove('active');
+        }
         render();
     </script>
 </body>
