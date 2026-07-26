@@ -538,8 +538,38 @@
       }
 
       /* ── BOARD SCREEN ── */
-      #board-screen {
+      #board-screen, #spy-screen {
         background: var(--bg);
+      }
+
+      /* Tablet / Desktop Single-Screen View Optimization */
+      @media (min-width: 600px) and (max-height: 960px) {
+        #board-screen, #spy-screen {
+          height: 100vh;
+          max-height: 100vh;
+          overflow: hidden;
+        }
+        .grid-wrap, .spy-grid-wrap {
+          padding: 0.4rem;
+          min-height: 0;
+          flex: 1;
+          overflow: hidden;
+        }
+        .grid {
+          gap: 0.4rem;
+          max-height: calc(100vh - 110px);
+        }
+        .card {
+          max-height: calc((100vh - 130px) / 5);
+        }
+        .board-header, .spy-header {
+          padding: 0.4rem 0.8rem;
+        }
+      }
+
+      .fs-toggle-btn:hover {
+        border-color: var(--gold) !important;
+        color: var(--gold-light) !important;
       }
 
       .board-header {
@@ -1499,6 +1529,7 @@
     <!-- ══════════════════ HOME SCREEN ══════════════════ -->
     <div id="home" class="screen active">
       <a href="../../index.html" class="back-link" style="text-decoration: none; color: var(--text-dim); display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; font-family: 'Rajdhani', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; position: absolute; top: 16px; left: 16px; z-index: 10; transition: all 0.25s ease;" onmouseover="this.style.color='var(--gold-light)'; this.style.transform='translateX(-4px)'" onmouseout="this.style.color='var(--text-dim)'; this.style.transform='translateX(0)'">➔ Back to Games</a>
+      <button class="fs-toggle-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen Mode" style="position: absolute; top: 16px; right: 16px; z-index: 10; background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); font-family: 'Rajdhani', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 2px; transition: all 0.25s ease;">⛶ Fullscreen</button>
       <script>
           document.addEventListener('click', function(e) {
               const backBtn = e.target.closest('.back-link, #back-link, #backButton');
@@ -1700,6 +1731,13 @@
           >
             🌓
           </button>
+          <button
+            class="theme-toggle fs-btn"
+            onclick="toggleFullscreen()"
+            title="Fullscreen Mode"
+          >
+            ⛶
+          </button>
           <button class="btn-sm" onclick="endTurn()">End Turn</button>
           <button class="btn-sm danger" onclick="confirmNewGame()">New</button>
           <button class="btn-sm" onclick="goHome()">Exit</button>
@@ -1737,6 +1775,13 @@
             title="Toggle theme"
           >
             🌓
+          </button>
+          <button
+            class="theme-toggle fs-btn"
+            onclick="toggleFullscreen()"
+            title="Fullscreen Mode"
+          >
+            ⛶
           </button>
           <button class="btn-sm" onclick="goHome()">Exit</button>
         </div>
@@ -3399,6 +3444,37 @@
           .querySelectorAll(".home-cards")
           .forEach((c) => (c.style.display = "flex"));
       }
+
+      // Fullscreen Mode Handler
+      function toggleFullscreen() {
+        const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+        if (isFull) {
+          if (document.exitFullscreen) document.exitFullscreen();
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+          else if (document.msExitFullscreen) document.msExitFullscreen();
+        } else {
+          const target = document.documentElement;
+          if (target.requestFullscreen) target.requestFullscreen();
+          else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+          else if (target.msRequestFullscreen) target.msRequestFullscreen();
+        }
+      }
+
+      function updateFullscreenIcons() {
+        const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+        document.querySelectorAll('.fs-btn').forEach(btn => {
+          btn.textContent = isFull ? '🗗' : '⛶';
+          btn.title = isFull ? 'Exit Fullscreen' : 'Fullscreen Mode';
+        });
+        document.querySelectorAll('.fs-toggle-btn').forEach(btn => {
+          btn.textContent = isFull ? '🗗 Exit Fullscreen' : '⛶ Fullscreen';
+          btn.title = isFull ? 'Exit Fullscreen' : 'Fullscreen Mode';
+        });
+      }
+
+      document.addEventListener('fullscreenchange', updateFullscreenIcons);
+      document.addEventListener('webkitfullscreenchange', updateFullscreenIcons);
+      document.addEventListener('msfullscreenchange', updateFullscreenIcons);
 
       // Re-render spy view when this tab gets focus (in case board changed)
       document.addEventListener("visibilitychange", () => {
