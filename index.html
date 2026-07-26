@@ -9,13 +9,63 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graspins Games Portal</title>
-    <meta name="description" content="Play online word, logic, and local 2-player board games. Select a category or search to find your game.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+    <title>Graspins Games Portal — Play Free Online Logic, Word & Board Games</title>
+    <meta name="description" content="Free online serverless games portal. Play Semantix, Codenames, Sudoku, Chess, Minesweeper, Spy, Connect 4, Tic-Tac-Toe, and Universal Scorekeeper directly in your browser. No ads, no downloads.">
+    <meta name="keywords" content="online games, word games, semantix, codenames, sudoku, chess online, minesweeper, scorekeeper, rummy score, board games, PWA games, serverless games">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://games.graspins.com/">
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://games.graspins.com/">
+    <meta property="og:title" content="Graspins Games Portal — Free Online Logic, Word & Board Games">
+    <meta property="og:description" content="Play Semantix, Codenames, Sudoku, Chess, Minesweeper, Spy, Connect 4, and Universal Scorekeeper. Free, instant, offline-capable PWA.">
+    <meta property="og:site_name" content="Graspins Games">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Graspins Games Portal — Free Online Word & Board Games">
+    <meta name="twitter:description" content="Play Semantix, Codenames, Sudoku, Chess, Minesweeper, and tools directly in your browser. Serverless, fast, zero ads.">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%236366f1'/><path d='M30 32C22 32 16 38 16 48C16 62 25 72 34 72C39 72 43 67 47 62L50 58L53 62C57 67 61 72 66 72C75 72 84 62 84 48C84 38 78 32 70 32C58 32 54 40 50 40C46 40 42 32 30 32Z' fill='%23ffffff'/><path d='M30 42V50M26 46H34' stroke='%236366f1' stroke-width='3.5' stroke-linecap='round'/><circle cx='65' cy='42' r='2.5' fill='%236366f1'/><circle cx='71' cy='47' r='2.5' fill='%236366f1'/><circle cx='65' cy='52' r='2.5' fill='%236366f1'/><circle cx='59' cy='47' r='2.5' fill='%236366f1'/></svg>">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Schema.org JSON-LD Structured Data for Search Engines & LLMs -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://games.graspins.com/#website",
+          "url": "https://games.graspins.com/",
+          "name": "Graspins Games Portal",
+          "description": "Collection of free serverless word games, logic puzzles, multiplayer party games, and tools.",
+          "inLanguage": "en"
+        },
+        {
+          "@type": "ItemList",
+          "name": "Featured Games Collection",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Semantix", "url": "https://games.graspins.com/semantix", "description": "Semantic word-guessing game." },
+            { "@type": "ListItem", "position": 2, "name": "Sudoku", "url": "https://games.graspins.com/sudoku", "description": "Interactive Sudoku puzzle." },
+            { "@type": "ListItem", "position": 3, "name": "Minesweeper", "url": "https://games.graspins.com/minesweeper", "description": "Classic logic mine-clearing game." },
+            { "@type": "ListItem", "position": 4, "name": "Codenames", "url": "https://games.graspins.com/codenames", "description": "Spymaster word deduction party game." },
+            { "@type": "ListItem", "position": 5, "name": "Chess", "url": "https://games.graspins.com/chess", "description": "Local and P2P multiplayer Chess." },
+            { "@type": "ListItem", "position": 6, "name": "Connect Four", "url": "https://games.graspins.com/connect4", "description": "4-in-a-row chip dropping game." },
+            { "@type": "ListItem", "position": 7, "name": "Tic-Tac-Toe", "url": "https://games.graspins.com/tictactoe", "description": "Neon Tic-Tac-Toe with score tracking." },
+            { "@type": "ListItem", "position": 8, "name": "Dots & Boxes", "url": "https://games.graspins.com/dotsandboxes", "description": "Grid area capture game." },
+            { "@type": "ListItem", "position": 9, "name": "Spy", "url": "https://games.graspins.com/spy", "description": "Imposter location deduction game." },
+            { "@type": "ListItem", "position": 10, "name": "Just One", "url": "https://games.graspins.com/justone", "description": "Cooperative party word game." },
+            { "@type": "ListItem", "position": 11, "name": "Universal Scorekeeper", "url": "https://games.graspins.com/scorekeeper", "description": "Universal score pad and points counter." }
+          ]
+        }
+      ]
+    }
+    </script>
     <style>
         :root {
             --bg-page: #060913;
@@ -79,6 +129,24 @@
             align-items: center;
             justify-content: center;
             gap: 16px;
+        }
+
+        .logo-icon-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            background: rgba(99, 102, 241, 0.12);
+            border-radius: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.3);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+            -webkit-text-fill-color: initial;
+        }
+
+        .logo-icon-badge:hover {
+            transform: scale(1.1) rotate(-4deg);
+            box-shadow: 0 0 35px rgba(236, 72, 153, 0.4);
         }
 
         .subtitle {
@@ -692,7 +760,26 @@
     <div class="container">
         <header>
             <div class="logo">
-                🎮 Graspins Games
+                <div class="logo-icon-badge">
+                    <svg viewBox="0 0 100 100" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logo-controller-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#6366f1" />
+                                <stop offset="50%" stop-color="#a855f7" />
+                                <stop offset="100%" stop-color="#ec4899" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="100" height="100" rx="28" fill="url(#logo-controller-grad)" opacity="0.2" />
+                        <rect x="2" y="2" width="96" height="96" rx="26" stroke="url(#logo-controller-grad)" stroke-width="3" />
+                        <path d="M30 32C22 32 16 38 16 48C16 62 25 72 34 72C39 72 43 67 47 62L50 58L53 62C57 67 61 72 66 72C75 72 84 62 84 48C84 38 78 32 70 32C58 32 54 40 42 32 30 32Z" fill="url(#logo-controller-grad)" />
+                        <path d="M30 41V51M25 46H35" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
+                        <circle cx="65" cy="42" r="2.5" fill="#ffffff" />
+                        <circle cx="71" cy="47" r="2.5" fill="#ffffff" />
+                        <circle cx="65" cy="52" r="2.5" fill="#ffffff" />
+                        <circle cx="59" cy="47" r="2.5" fill="#ffffff" />
+                    </svg>
+                </div>
+                <span>Graspins Games</span>
                 <button id="btn-install-header" class="btn-install-header" style="display: none;" title="Download App">
                     <svg viewBox="0 0 24 24" width="14" height="14" style="fill: currentColor; flex-shrink: 0;"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                 </button>

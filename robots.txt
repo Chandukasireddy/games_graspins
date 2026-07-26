@@ -1,0 +1,29 @@
+# Robots.txt for Graspins Games Portal
+# Allows all search engines and AI / LLM web crawlers to index and scrape game details
+
+User-agent: *
+Allow: /
+
+# LLM & AI Assistant Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Sitemap: https://games.graspins.com/sitemap.xml

@@ -1,0 +1,32 @@
+# Graspins Games Portal
+
+> Free, fast, serverless online game portal with word puzzles, logic challenges, multiplayer party games, and utilities. Runs 100% client-side with offline PWA support, no ads, and no account requirements.
+
+## Available Games & Direct Links
+
+### Solo Logic & Word Games
+- [Semantix](https://games.graspins.com/semantix): Daily semantic word-guessing puzzle. Guess secret words based on contextual similarity scores (0-1000) with interactive force-directed graph visualizers.
+- [Sudoku](https://games.graspins.com/sudoku): Interactive 9x9 Sudoku puzzle generator with multiple difficulty levels, move history, pencil notes, and timer.
+- [Minesweeper](https://games.graspins.com/minesweeper): Classic minefield clearing game with customizable grid sizes, flag toggles, first-click safety, and high score tracking.
+
+### 2-Player & Local Multiplayer Games
+- [Chess](https://games.graspins.com/chess): Premium Chess board with legal move indicators, captured pieces, turn timers, local pass & play, and peer-to-peer WebRTC multiplayer.
+- [Connect Four](https://games.graspins.com/connect4): 4-in-a-row chip dropping game featuring gravity bounce physics and win detection.
+- [Tic-Tac-Toe](https://games.graspins.com/tictactoe): Glowing neon 3x3 Tic-Tac-Toe with animated SVG drawing effects and score tracking.
+- [Dots & Boxes](https://games.graspins.com/dotsandboxes): Strategic line-connecting grid game to capture boxes and claim territory.
+
+### Group & Party Games
+- [Codenames](https://games.graspins.com/codenames): Spymaster word deduction party game. Give 1-word clues to help your team find secret agents on a 5x5 grid while avoiding the assassin. Features 2000+ words, movie packs, picture cards, and Fullscreen mode for tablets.
+- [Spy / Imposter](https://games.graspins.com/spy): Imposter location deduction party game. Everyone knows the secret location except the hidden Spy, who must blend in by asking strategic questions.
+- [Just One](https://games.graspins.com/justone): Cooperative party word game. Teammates write unique 1-word clues to help the guesser figure out the secret word—duplicate clues are automatically cancelled out!
+
+### Gaming Tools & Utilities
+- [Universal Scorekeeper](https://games.graspins.com/scorekeeper): Universal game score pad & points notation table. Supports "Highest Wins" (Scrabble, UNO) and "Lowest Wins" (Rummy, Golf), spreadsheet-style inline cell editing, real-time leaderboard crowns, and clipboard export.
+- [Coin Toss](https://games.graspins.com/cointoss): 3D physical gold coin flip simulator (Dog Head vs Dog) with synthesized audio chimes.
+- [Dice Roller](https://games.graspins.com/dice): 3D neon rolling dice simulator with customizable dice count (1 to 6) and sound synthesis.
+- [Mixer / Team Randomizer](https://games.graspins.com/mixer): Quick team generator and player distributor for group events and tournaments.
+
+## Technical Details
+- Architecture: Pure client-side HTML5, CSS3, Vanilla JavaScript.
+- Mobile Support: Progressive Web App (PWA) manifest with offline caching.
+- Navigation: Single-Page Application (SPA) modal overlay routing with custom URL slug state.
