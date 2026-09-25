@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="words.js"></script>
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -404,6 +405,172 @@
             letter-spacing: 0.05em;
         }
 
+        /* ===== Actions Area & Buttons ===== */
+        .game-actions-area {
+            padding: 16px 12px 36px;
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-buttons-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .reveal-all-btn {
+            flex: 1;
+            padding: 15px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #f1f5f9;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-family: inherit;
+        }
+
+        .reveal-all-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .reveal-all-btn:active {
+            transform: scale(0.97);
+        }
+
+        .new-game-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s;
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+            font-family: inherit;
+        }
+
+        .new-game-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* ===== Results Banner ===== */
+        .results-banner {
+            background: rgba(22, 19, 50, 0.95);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            padding: 16px 18px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            animation: pop-in 0.3s ease both;
+        }
+
+        .results-banner-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .results-banner-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .results-civilians {
+            color: #c7d2fe;
+        }
+
+        .results-spies {
+            color: #fca5a5;
+            font-weight: 700;
+        }
+
+        /* ===== End of Round Revealed Role State ===== */
+        .card.revealed-final-civilian .card-inner,
+        .card.revealed-final-spy .card-inner {
+            transform: none !important;
+        }
+
+        .card.revealed-final-civilian .card-front {
+            background: linear-gradient(145deg, #1e1b4b, #2e2a72) !important;
+            border: 2px solid #818cf8 !important;
+            color: #fff !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 10px !important;
+        }
+
+        .card.revealed-final-spy .card-front {
+            background: linear-gradient(145deg, #4c0519, #881337) !important;
+            border: 2px solid #f43f5e !important;
+            box-shadow: 0 0 16px rgba(244, 63, 94, 0.45) !important;
+            color: #fff !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 10px !important;
+        }
+
+        .final-role-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .final-role-badge.civilian {
+            background: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+        }
+
+        .final-role-badge.spy {
+            background: rgba(244, 63, 94, 0.35);
+            color: #fda4af;
+        }
+
+        .final-word-label {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-top: 4px;
+            word-break: break-word;
+            color: #fff;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes pop-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         /* ===== Collapsible Settings Panel ===== */
         .settings-overlay {
             display: none;
@@ -542,44 +709,6 @@
             color: #fff;
         }
 
-        /* ===== New Game Button ===== */
-        .new-game-area {
-            padding: 16px 12px 32px;
-            text-align: center;
-        }
-
-        .new-game-btn {
-            width: 100%;
-            max-width: 400px;
-            padding: 16px;
-            border: none;
-            border-radius: 16px;
-            background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
-            color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.15s;
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
-            font-family: inherit;
-        }
-
-        .new-game-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* ===== Animations ===== */
-        @keyframes pop-in {
-            from {
-                opacity: 0;
-                transform: translateY(10px) scale(0.96);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
         /* ===== Utilities ===== */
         .hidden {
             display: none !important;
@@ -613,15 +742,16 @@
                 <div class="option-item">
                     <label for="spy-mode" class="option-label mode">⚙️ Spy Mode</label>
                     <select id="spy-mode" class="option-select">
-                        <option value="spy">Classic</option>
-                        <option value="random">Random word</option>
+                        <option value="similar" selected>Similar word (Undercover)</option>
+                        <option value="spy">Classic (You are Spy)</option>
+                        <option value="random">Random word (Unrelated)</option>
                     </select>
                     <span class="option-hint">how the spy is shown</span>
                 </div>
             </div>
 
             <p id="mode-hint" class="mode-hint">
-                In <strong>Random</strong> mode the spy gets a different word and won't know they're the spy.
+                In <strong>Similar Word</strong> mode, civilians receive one secret word and the spy receives a closely related word (e.g., <em>Coffee</em> vs <em>Tea</em>). The spy blends in for deeper deduction rounds!
             </p>
 
             <button id="start-button" class="start-btn">Start Game</button>
@@ -652,8 +782,9 @@
                 <div class="settings-field">
                     <label for="inline-mode">⚙️ Mode</label>
                     <select id="inline-mode">
+                        <option value="similar">Similar word</option>
                         <option value="spy">Classic</option>
-                        <option value="random">Random</option>
+                        <option value="random">Random word</option>
                     </select>
                 </div>
             </div>
@@ -682,65 +813,131 @@
             </div>
         </div>
 
-        <!-- New Game button at the bottom -->
-        <div class="new-game-area">
-            <button id="new-game-button" class="new-game-btn">🔄 New Game</button>
+        <!-- Action area at the bottom -->
+        <div class="game-actions-area">
+            <div id="results-banner" class="results-banner hidden"></div>
+            <div class="action-buttons-row">
+                <button id="reveal-all-button" class="reveal-all-btn">👁️ Reveal Roles & Words</button>
+                <button id="new-game-button" class="new-game-btn">🔄 Next Round</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // ===== State =====
-        let allWords = [];
-        let availableWords = [];
-        let currentlyOpenCard = null;
+        // ===== Helper Utilities =====
+        function shuffle(arr) {
+            const array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
-        // ===== DOM =====
-        const setupScreen  = document.getElementById('setup-screen');
-        const gameScreen    = document.getElementById('game-screen');
-        const startButton   = document.getElementById('start-button');
-        const backButton    = document.getElementById('back-button');
-        const settingsButton = document.getElementById('settings-button');
-        const newGameButton  = document.getElementById('new-game-button');
-        const settingsPanel  = document.getElementById('settings-panel');
-        const settingsOverlay = document.getElementById('settings-overlay');
-        const settingsApply  = document.getElementById('settings-apply');
-        const inlinePlayers  = document.getElementById('inline-players');
-        const inlineSpies    = document.getElementById('inline-spies');
-        const inlineMode     = document.getElementById('inline-mode');
+        // ===== Fallback clusters in case words.js is delayed =====
+        const FALLBACK_CLUSTERS = [
+            ["Coffee", "Tea", "Espresso", "Latte", "Cappuccino", "Hot Chocolate"],
+            ["Pizza", "Burger", "Sandwich", "Hot Dog", "Taco", "Burrito"],
+            ["Lion", "Tiger", "Leopard", "Cheetah", "Jaguar", "Panther"],
+            ["Dog", "Wolf", "Fox", "Coyote", "Jackal"],
+            ["Apple", "Pear", "Peach", "Plum", "Apricot"],
+            ["Fork", "Spoon", "Knife", "Chopsticks"],
+            ["Hotel", "Motel", "Resort", "Hostel", "Inn"],
+            ["Airplane", "Helicopter", "Jet", "Glider", "Blimp"],
+            ["Doctor", "Nurse", "Surgeon", "Physician", "Pediatrician"],
+            ["Guitar", "Violin", "Cello", "Ukulele", "Bass"],
+            ["Sun", "Moon", "Planet", "Star", "Comet"],
+            ["Ocean", "Sea", "Lake", "River", "Waterfall"]
+        ];
+
+        // ===== State =====
+        let allWords = (typeof SPY_ALL_WORDS !== 'undefined') ? [...SPY_ALL_WORDS] : [];
+        let availableWords = [...allWords];
+        let availableClusters = (typeof SPY_SEMANTIC_CLUSTERS !== 'undefined' && SPY_SEMANTIC_CLUSTERS.length > 0)
+            ? shuffle([...SPY_SEMANTIC_CLUSTERS])
+            : shuffle([...FALLBACK_CLUSTERS]);
+        let currentlyOpenCard = null;
+        let currentRoundData = null;
+
+        // ===== DOM Elements =====
+        const setupScreen      = document.getElementById('setup-screen');
+        const gameScreen       = document.getElementById('game-screen');
+        const startButton      = document.getElementById('start-button');
+        const backButton       = document.getElementById('back-button');
+        const settingsButton   = document.getElementById('settings-button');
+        const newGameButton    = document.getElementById('new-game-button');
+        const revealAllButton  = document.getElementById('reveal-all-button');
+        const resultsBanner    = document.getElementById('results-banner');
+        const settingsPanel    = document.getElementById('settings-panel');
+        const settingsOverlay  = document.getElementById('settings-overlay');
+        const settingsApply    = document.getElementById('settings-apply');
+        const inlinePlayers    = document.getElementById('inline-players');
+        const inlineSpies      = document.getElementById('inline-spies');
+        const inlineMode       = document.getElementById('inline-mode');
         const playerCountInput = document.getElementById('player-count');
         const spyCountInput    = document.getElementById('spy-count');
         const spyModeSelect    = document.getElementById('spy-mode');
-        const cardGrid       = document.getElementById('card-grid');
-        const errorMessage   = document.getElementById('error-message');
+        const modeHint         = document.getElementById('mode-hint');
+        const cardGrid         = document.getElementById('card-grid');
+        const errorMessage     = document.getElementById('error-message');
+
+        // ===== Mode Hint Updates =====
+        function updateModeHint(mode) {
+            if (mode === 'similar') {
+                modeHint.innerHTML = 'In <strong>Similar Word</strong> mode, civilians receive one secret word and the spy receives a closely related word (e.g., <em>Coffee</em> vs <em>Tea</em>). The spy can blend in, creating clever clues and longer deduction rounds!';
+            } else if (mode === 'spy') {
+                modeHint.innerHTML = 'In <strong>Classic</strong> mode, the spy is alerted <em>"You are the SPY!"</em> with no word, and must pretend to know the secret word.';
+            } else if (mode === 'random') {
+                modeHint.innerHTML = 'In <strong>Random Word</strong> mode, the spy gets a completely unrelated secret word without knowing they are the spy.';
+            }
+        }
 
         // ===== Word Loading =====
         async function loadWords() {
-            try {
-                startButton.disabled = true;
-                startButton.textContent = 'Loading Words…';
-
-                const sheetURL = 'https://docs.google.com/spreadsheets/d/1k3pE4dRKMqpACy6NCLhOkmeZZS0gj0TQ_8XCim6xt_k/export?format=csv';
-                const response = await fetch(sheetURL);
-
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.text();
-
-                allWords = data
-                    .split(/\r?\n/)
-                    .slice(1)
-                    .map(w => w.trim())
-                    .filter(w => w.length > 0);
-
-                if (allWords.length === 0) throw new Error('Sheet is empty or formatted incorrectly.');
-
+            // Check if global database from words.js is ready
+            if (typeof SPY_ALL_WORDS !== 'undefined' && SPY_ALL_WORDS.length > 0) {
+                allWords = [...SPY_ALL_WORDS];
                 availableWords = [...allWords];
+                availableClusters = shuffle([...SPY_SEMANTIC_CLUSTERS]);
                 startButton.disabled = false;
                 startButton.textContent = 'Start Game';
-            } catch (error) {
-                console.error('Failed to load words:', error);
-                errorMessage.textContent = 'Error: Could not load game words.';
-                startButton.textContent = 'Error Loading';
             }
+
+            // Optional background fetch from Google Sheet to add any extra words
+            try {
+                const sheetURL = 'https://docs.google.com/spreadsheets/d/1k3pE4dRKMqpACy6NCLhOkmeZZS0gj0TQ_8XCim6xt_k/export?format=csv';
+                const response = await fetch(sheetURL);
+                if (response.ok) {
+                    const data = await response.text();
+                    const sheetWords = data
+                        .split(/\r?\n/)
+                        .slice(1)
+                        .map(w => w.trim())
+                        .filter(w => w.length > 0);
+
+                    if (sheetWords.length > 0) {
+                        const merged = new Set([...allWords, ...sheetWords]);
+                        allWords = Array.from(merged);
+                        availableWords = [...allWords];
+                    }
+                }
+            } catch (err) {
+                console.log('Running in offline mode with bundled word database.');
+            } finally {
+                startButton.disabled = false;
+                startButton.textContent = 'Start Game';
+            }
+        }
+
+        function getRandomWord() {
+            if (availableWords.length === 0) {
+                availableWords = [...allWords];
+            }
+            if (availableWords.length === 0) return 'Secret';
+            const index = Math.floor(Math.random() * availableWords.length);
+            const word = availableWords[index];
+            availableWords.splice(index, 1);
+            return word;
         }
 
         // ===== Settings Panel Toggle =====
@@ -749,7 +946,6 @@
             if (isOpen) {
                 closeSettings();
             } else {
-                // Sync inline inputs with current setup values
                 inlinePlayers.value = playerCountInput.value;
                 inlineSpies.value = spyCountInput.value;
                 inlineMode.value = spyModeSelect.value;
@@ -764,36 +960,13 @@
         }
 
         function applySettings() {
-            // Copy inline values back to main inputs
             playerCountInput.value = inlinePlayers.value;
             spyCountInput.value = inlineSpies.value;
             spyModeSelect.value = inlineMode.value;
+            updateModeHint(spyModeSelect.value);
             closeSettings();
             startGame();
         }
-
-        // ===== Events =====
-        document.addEventListener('DOMContentLoaded', loadWords);
-        startButton.addEventListener('click', startGame);
-        backButton.addEventListener('click', () => {
-            if (window.self !== window.top) {
-                window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
-            } else {
-                window.location.href = '../../index.html';
-            }
-        });
-        settingsButton.addEventListener('click', toggleSettings);
-        settingsOverlay.addEventListener('click', closeSettings);
-        settingsApply.addEventListener('click', applySettings);
-        newGameButton.addEventListener('click', () => { closeSettings(); startGame(); });
-        document.getElementById('settings-close').addEventListener('click', closeSettings);
-        document.getElementById('nav-logo').addEventListener('click', () => {
-            closeSettings();
-            currentlyOpenCard = null;
-            cardGrid.innerHTML = '';
-            gameScreen.classList.add('hidden');
-            setupScreen.classList.remove('hidden');
-        });
 
         // ===== Start Game =====
         function startGame() {
@@ -815,27 +988,43 @@
             }
             errorMessage.textContent = '';
 
-            if (availableWords.length === 0) {
-                if (allWords.length > 0) {
-                    availableWords = [...allWords];
-                } else {
-                    showError('No words available to start the game.');
-                    return;
-                }
-            }
+            // Reset results banner & reveal button
+            resultsBanner.classList.add('hidden');
+            resultsBanner.innerHTML = '';
+            revealAllButton.textContent = '👁️ Reveal Roles & Words';
 
-            // Pick civilian word
-            const wordIndex = Math.floor(Math.random() * availableWords.length);
-            const chosenWord = availableWords[wordIndex];
-            availableWords.splice(wordIndex, 1);
-
-            // Pick spy word for random mode
+            let chosenWord = '';
             let spyWord = '';
-            if (spyMode === 'random') {
-                const otherWords = allWords.filter(w => w !== chosenWord);
-                if (otherWords.length > 0) {
-                    spyWord = otherWords[Math.floor(Math.random() * otherWords.length)];
+
+            if (spyMode === 'similar') {
+                // Ensure clusters pool is populated
+                if (!availableClusters || availableClusters.length === 0) {
+                    if (typeof SPY_SEMANTIC_CLUSTERS !== 'undefined' && SPY_SEMANTIC_CLUSTERS.length > 0) {
+                        availableClusters = shuffle([...SPY_SEMANTIC_CLUSTERS]);
+                    } else {
+                        availableClusters = shuffle([...FALLBACK_CLUSTERS]);
+                    }
                 }
+
+                if (availableClusters.length > 0) {
+                    const cluster = availableClusters.pop();
+                    const shuffledCluster = shuffle([...cluster]);
+                    chosenWord = shuffledCluster[0];
+                    spyWord = shuffledCluster[1];
+                } else {
+                    chosenWord = getRandomWord();
+                    spyWord = getRandomWord();
+                }
+            } else if (spyMode === 'random') {
+                chosenWord = getRandomWord();
+                const otherWords = allWords.filter(w => w !== chosenWord);
+                spyWord = (otherWords.length > 0) 
+                    ? otherWords[Math.floor(Math.random() * otherWords.length)] 
+                    : getRandomWord();
+            } else {
+                // Classic spy mode
+                chosenWord = getRandomWord();
+                spyWord = '';
             }
 
             // Assign spy positions
@@ -844,6 +1033,16 @@
                 spyIndexes.add(Math.floor(Math.random() * playerCount));
             }
 
+            // Store round data for final reveal
+            currentRoundData = {
+                civilianWord: chosenWord,
+                spyWord: spyWord,
+                spyIndexes: spyIndexes,
+                mode: spyMode,
+                playerCount: playerCount,
+                cards: []
+            };
+
             // Build cards
             currentlyOpenCard = null;
             cardGrid.innerHTML = '';
@@ -851,9 +1050,9 @@
                 const isSpy = spyIndexes.has(i);
                 let word, role;
                 if (isSpy) {
-                    if (spyMode === 'random') {
+                    if (spyMode === 'similar' || spyMode === 'random') {
                         word = spyWord;
-                        role = 'Civilian';
+                        role = 'Civilian'; // Disguised as standard Civilian card so the player sees a normal word
                     } else {
                         word = '';
                         role = 'SPY';
@@ -862,26 +1061,29 @@
                     word = chosenWord;
                     role = 'Civilian';
                 }
-                createCard(i + 1, word, role);
+                const cardEl = createCard(i + 1, word, role, isSpy);
+                currentRoundData.cards.push({ playerNumber: i + 1, word, role, isSpy, element: cardEl });
             }
 
             // Switch to game screen
             setupScreen.classList.add('hidden');
             gameScreen.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // ===== Create Card =====
-        function createCard(playerNumber, word, role) {
+        function createCard(playerNumber, word, role, isSpy) {
             const card = document.createElement('div');
             card.className = 'card';
             card.style.animationDelay = `${(playerNumber - 1) * 0.04}s`;
             card.dataset.word = word;
             card.dataset.role = role;
+            card.dataset.player = playerNumber;
+            card.dataset.isSpy = isSpy ? 'true' : 'false';
 
-            const isSpy = role === 'SPY';
-
-            const backClass = isSpy ? 'card-face card-back spy' : 'card-face card-back civilian';
-            const backContent = isSpy
+            const showSpyCard = (role === 'SPY');
+            const backClass = showSpyCard ? 'card-face card-back spy' : 'card-face card-back civilian';
+            const backContent = showSpyCard
                 ? `<p class="spy-title">You are the SPY!</p>
                    <p class="spy-subtitle">Blend in and find the word.</p>`
                 : `<p class="word-label">Your word</p>
@@ -901,21 +1103,19 @@
             `;
 
             const handleFlip = () => {
-                // Already revealed — ignore
-                if (card.classList.contains('revealed')) return;
+                // If round is finalized, clicks do nothing
+                if (card.classList.contains('revealed-final-civilian') || card.classList.contains('revealed-final-spy')) return;
 
                 if (card.classList.contains('flipped')) {
-                    // Flip back and mark as revealed
+                    // Flip back and mark as revealed (hiding secret word for the next player)
                     card.classList.remove('flipped');
                     card.classList.add('revealed');
 
-                    // Update front to gray with just "Revealed" text
                     const front = card.querySelector('.card-front');
                     front.innerHTML = `
                         <p class="player-num">Player ${playerNumber}</p>
                         <p class="revealed-label">Revealed</p>
                     `;
-
                     currentlyOpenCard = null;
                 } else {
                     // Only one card open at a time
@@ -927,6 +1127,68 @@
 
             card.addEventListener('click', handleFlip);
             cardGrid.appendChild(card);
+            return card;
+        }
+
+        // ===== Reveal All Roles & Words (End of Round) =====
+        function revealAllRoles() {
+            if (!currentRoundData) return;
+
+            currentRoundData.cards.forEach(c => {
+                const cardEl = c.element;
+                cardEl.classList.remove('flipped');
+                cardEl.classList.add('revealed');
+                const front = cardEl.querySelector('.card-front');
+
+                if (c.isSpy) {
+                    cardEl.classList.add('revealed-final-spy');
+                    front.innerHTML = `
+                        <span class="final-role-badge spy">🎭 SPY</span>
+                        <p class="player-num">Player ${c.playerNumber}</p>
+                        <p class="final-word-label">${c.word || 'No Word'}</p>
+                    `;
+                } else {
+                    cardEl.classList.add('revealed-final-civilian');
+                    front.innerHTML = `
+                        <span class="final-role-badge civilian">Civilian</span>
+                        <p class="player-num">Player ${c.playerNumber}</p>
+                        <p class="final-word-label">${c.word}</p>
+                    `;
+                }
+            });
+
+            // Summary lists
+            const spyNumbers = Array.from(currentRoundData.spyIndexes).map(idx => `Player ${idx + 1}`).join(', ');
+            const civNumbers = [];
+            for (let i = 0; i < currentRoundData.playerCount; i++) {
+                if (!currentRoundData.spyIndexes.has(i)) {
+                    civNumbers.push(`Player ${i + 1}`);
+                }
+            }
+
+            let spyWordInfo = '';
+            if (currentRoundData.mode === 'similar') {
+                spyWordInfo = `Similar Word: <strong>"${currentRoundData.spyWord}"</strong>`;
+            } else if (currentRoundData.mode === 'random') {
+                spyWordInfo = `Random Word: <strong>"${currentRoundData.spyWord}"</strong>`;
+            } else {
+                spyWordInfo = `<em>(Classic Spy - No Word)</em>`;
+            }
+
+            resultsBanner.innerHTML = `
+                <div class="results-banner-title">🕵️ Round Completed!</div>
+                <div class="results-banner-details">
+                    <div class="results-civilians">
+                        👥 <strong>Civilians (${civNumbers.join(', ')}):</strong> "${currentRoundData.civilianWord}"
+                    </div>
+                    <div class="results-spies">
+                        🎭 <strong>Spy (${spyNumbers}):</strong> ${spyWordInfo}
+                    </div>
+                </div>
+            `;
+            resultsBanner.classList.remove('hidden');
+            revealAllButton.textContent = '✅ Roles Revealed';
+            resultsBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         // ===== Helpers =====
@@ -934,12 +1196,38 @@
             errorMessage.textContent = msg;
         }
 
-        function goToMenu() {
+        // ===== Event Listeners =====
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWords();
+            updateModeHint(spyModeSelect.value);
+        });
+
+        spyModeSelect.addEventListener('change', (e) => updateModeHint(e.target.value));
+        startButton.addEventListener('click', startGame);
+
+        backButton.addEventListener('click', () => {
+            if (window.self !== window.top) {
+                window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+            } else {
+                window.location.href = '../../index.html';
+            }
+        });
+
+        settingsButton.addEventListener('click', toggleSettings);
+        settingsOverlay.addEventListener('click', closeSettings);
+        settingsApply.addEventListener('click', applySettings);
+        revealAllButton.addEventListener('click', revealAllRoles);
+        newGameButton.addEventListener('click', () => { closeSettings(); startGame(); });
+        document.getElementById('settings-close').addEventListener('click', closeSettings);
+
+        document.getElementById('nav-logo').addEventListener('click', () => {
+            closeSettings();
             currentlyOpenCard = null;
             cardGrid.innerHTML = '';
             gameScreen.classList.add('hidden');
             setupScreen.classList.remove('hidden');
-        }
+        });
     </script>
 </body>
 </html>
+
