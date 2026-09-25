@@ -43,142 +43,117 @@
             background: radial-gradient(ellipse 800px 500px at 50% -5%, #312e81 0%, #1e1b4b 35%, var(--bg-deep) 100%);
             color: var(--text-primary);
             min-height: 100dvh;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* ===== Top Navigation Bar (game screen only) ===== */
-        .top-nav {
-            position: sticky;
-            top: 0;
-            z-index: 50;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: rgba(12, 10, 29, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        .nav-btn {
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text-primary);
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .nav-btn:active {
-            transform: scale(0.92);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .nav-title {
-            font-size: 1rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
+            flex-direction: column;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* ===== Setup Screen ===== */
         .setup-wrapper {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100dvh;
             padding: 24px 16px;
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .setup-header {
             text-align: center;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
         .setup-header h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 900;
             letter-spacing: -0.03em;
-            color: #fff;
+            background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
         }
 
         .setup-header p {
-            font-size: 0.875rem;
             color: var(--text-secondary);
-            margin-top: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
 
         .setup-card {
-            background: var(--glass-bg);
-            color: #1e293b;
             width: 100%;
-            max-width: 420px;
-            padding: 28px 20px;
-            border-radius: 24px;
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
-            border: 1px solid var(--glass-ring);
+            background: rgba(22, 19, 50, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            padding: 24px 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
         }
 
         .setup-card h2 {
-            font-size: 1.25rem;
-            font-weight: 800;
-            text-align: center;
-            color: #0f172a;
+            font-size: 1.15rem;
+            font-weight: 700;
             margin-bottom: 4px;
         }
 
         .setup-card .subtitle {
-            text-align: center;
-            font-size: 0.8rem;
             color: var(--text-muted);
-            margin-bottom: 24px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
         }
 
-        .option-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
         }
 
         .option-item {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 14px;
-            border: 1px solid #e2e8f0;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            padding: 14px 8px 12px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .option-item:focus-within {
+            border-color: var(--indigo-500);
+            background: rgba(99, 102, 241, 0.08);
         }
 
         .option-label {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .option-label.players { color: var(--indigo-600); }
-        .option-label.spies { color: var(--rose-600); }
-        .option-label.mode { color: var(--emerald-500); }
+        .option-label.players { color: #818cf8; }
+        .option-label.spies   { color: #fb7185; }
+        .option-label.mode    { color: #34d399; }
 
-        .option-input,
-        .option-select {
+        .option-input {
             width: 100%;
-            padding: 12px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 1.75rem;
+            font-weight: 900;
             text-align: center;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: #0f172a;
-            background: #fff;
+            font-family: inherit;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             -webkit-appearance: none;
@@ -186,44 +161,66 @@
         }
 
         .option-input:focus {
-            border-color: var(--indigo-500);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            outline: none;
         }
 
         .option-select {
-            font-size: 1rem;
-            font-weight: 600;
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+            text-align-last: center;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            padding: 6px 0;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .option-select option {
+            background: var(--bg-surface);
+            color: #fff;
         }
 
         .option-hint {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            text-align: center;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
         .mode-hint {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            text-align: center;
-            background: #eef2ff;
-            border-radius: 12px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 0.75rem;
             padding: 10px 14px;
             margin-bottom: 20px;
-            line-height: 1.5;
+            line-height: 1.45;
+            text-align: center;
+            border-left: 3px solid var(--indigo-500);
         }
 
         .start-btn {
             width: 100%;
             padding: 16px;
             border: none;
-            border-radius: 16px;
+            border-radius: 1rem;
             background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
             color: #fff;
             font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
-            transition: transform 0.15s, opacity 0.2s;
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+            transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+            box-shadow: 0 8px 24px -4px rgba(79, 70, 229, 0.45);
+            font-family: inherit;
+        }
+
+        .start-btn:hover {
+            box-shadow: 0 12px 30px -4px rgba(79, 70, 229, 0.6);
         }
 
         .start-btn:active {
@@ -231,64 +228,129 @@
         }
 
         .start-btn:disabled {
-            opacity: 0.55;
+            opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
 
         .error-text {
             color: var(--rose-500);
-            font-size: 0.82rem;
-            font-weight: 600;
+            font-size: 0.8rem;
             text-align: center;
-            margin-top: 12px;
-            min-height: 20px;
+            margin-top: 10px;
+            min-height: 1.2em;
         }
 
         /* ===== Game Screen ===== */
+        #game-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100dvh;
+        }
+
+        /* Top Nav */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(12, 10, 29, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.93);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Cards Grid Container */
         .game-container {
-            padding: 12px 12px 32px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 16px;
+            width: 100%;
+            justify-content: center;
         }
 
-        @media (min-width: 480px) {
-            .card-grid {
-                gap: 14px;
+        /* Dynamic grid columns */
+        .card-grid[data-cols="2"] { grid-template-columns: repeat(2, 1fr); max-width: 400px; }
+        .card-grid[data-cols="3"] { grid-template-columns: repeat(3, 1fr); max-width: 580px; }
+        .card-grid[data-cols="4"] { grid-template-columns: repeat(4, 1fr); max-width: 740px; }
+
+        @media (max-width: 440px) {
+            .card-grid[data-cols="3"],
+            .card-grid[data-cols="4"] {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 360px;
             }
         }
 
-        @media (min-width: 640px) {
-            .card-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 16px;
-            }
-        }
-
-        @media (min-width: 900px) {
-            .card-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        /* ===== Card ===== */
+        /* ===== Flip Card Component ===== */
         .card {
+            aspect-ratio: 3 / 4;
             perspective: 1000px;
             cursor: pointer;
-            animation: pop-in 0.35s ease both;
+            min-height: 150px;
+            animation: card-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes card-appear {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .card-inner {
             position: relative;
             width: 100%;
-            padding-top: 120%;  /* aspect ratio for tall mobile cards */
-            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
-            transform-style: preserve-3d;
+            height: 100%;
             border-radius: var(--card-radius);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
         }
 
         .card.flipped .card-inner {
@@ -298,161 +360,148 @@
         .card-face {
             position: absolute;
             inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: var(--card-radius);
             -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: var(--card-radius);
-            overflow: hidden;
-            padding: 12px;
+            padding: 16px 12px;
             text-align: center;
         }
 
+        /* Front Face (Hidden state) */
         .card-front {
-            background: linear-gradient(145deg, var(--indigo-500), var(--violet-600));
+            background: linear-gradient(145deg, #1e1b4b, #17143a);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover .card-front {
+            border-color: var(--indigo-500);
+            box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .player-icon {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .player-num {
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
             color: #fff;
         }
 
-        .card-front .player-icon {
-            font-size: 1.8rem;
-            margin-bottom: 4px;
-        }
-
-        .card-front .player-num {
-            font-size: 1.3rem;
-            font-weight: 800;
-        }
-
-        .card-front .tap-hint {
+        .tap-hint {
             font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 4px;
-        }
-
-        .card-back {
-            transform: rotateY(180deg);
-        }
-
-        .card-back.civilian {
-            background: linear-gradient(145deg, #eef2ff, #fff);
-            border: 2px solid #c7d2fe;
-        }
-
-        .card-back.spy {
-            background: linear-gradient(145deg, #fff1f2, #fff);
-            border: 3px solid var(--rose-500);
-        }
-
-        .card-back .word-label {
-            font-size: 0.6rem;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: #a5b4fc;
-        }
-
-        .card-back .word-text {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin-top: 6px;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-
-        .card-back.spy .spy-title {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--rose-600);
-        }
-
-        .card-back.spy .spy-subtitle {
-            font-size: 0.7rem;
-            color: #64748b;
+            color: var(--text-muted);
             margin-top: 6px;
         }
 
-        /* ===== Revealed State ===== */
-        .card.revealed .card-inner {
-            transform: none;
-        }
-
+        /* Revealed State for Front */
         .card.revealed .card-front {
-            background: #374151;
-            color: #9ca3af;
+            background: #110e24;
+            border-color: rgba(255, 255, 255, 0.04);
+            box-shadow: none;
+            opacity: 0.6;
+            cursor: default;
         }
 
         .card.revealed .card-front .player-icon {
             display: none;
         }
 
-        .card.revealed .card-front .tap-hint {
-            display: none;
-        }
-
-        .card.revealed {
-            cursor: default;
+        .card.revealed .player-num {
+            color: var(--text-muted);
         }
 
         .revealed-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #9ca3af;
+            color: var(--text-muted);
             margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
-        /* ===== Actions Area & Buttons ===== */
-        .game-actions-area {
-            padding: 16px 12px 36px;
-            max-width: 500px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        /* Back Face (Word state) */
+        .card-back {
+            transform: rotateY(180deg);
+            padding: 16px;
         }
 
-        .action-buttons-row {
-            display: flex;
-            gap: 10px;
+        .card-back.civilian {
+            background: linear-gradient(145deg, #1e1b4b, #2e2a72);
+            border: 2px solid var(--indigo-500);
+            box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.4);
         }
 
-        .reveal-all-btn {
-            flex: 1;
-            padding: 15px;
-            border: 1.5px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.08);
-            color: #f1f5f9;
-            font-size: 0.95rem;
+        .card-back.spy {
+            background: linear-gradient(145deg, #4c0519, #881337);
+            border: 2px solid var(--rose-500);
+            box-shadow: 0 12px 30px -5px rgba(244, 63, 94, 0.5);
+        }
+
+        .word-label {
+            font-size: 0.65rem;
             font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
         }
 
-        .reveal-all-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.35);
+        .card-back.spy .word-label {
+            color: #fda4af;
         }
 
-        .reveal-all-btn:active {
-            transform: scale(0.97);
+        .word-text {
+            font-size: 1.35rem;
+            font-weight: 900;
+            line-height: 1.2;
+            word-break: break-word;
+            color: #fff;
+        }
+
+        .spy-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .spy-subtitle {
+            font-size: 0.75rem;
+            color: #fca5a5;
+            line-height: 1.3;
+        }
+
+        /* ===== New Game Button ===== */
+        .new-game-area {
+            padding: 16px 12px 32px;
+            text-align: center;
         }
 
         .new-game-btn {
-            flex: 1;
-            padding: 15px;
+            width: 100%;
+            max-width: 400px;
+            padding: 16px;
             border: none;
             border-radius: 16px;
             background: linear-gradient(135deg, var(--indigo-600), var(--violet-600));
             color: #fff;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: transform 0.15s;
@@ -462,113 +511,6 @@
 
         .new-game-btn:active {
             transform: scale(0.97);
-        }
-
-        /* ===== Results Banner ===== */
-        .results-banner {
-            background: rgba(22, 19, 50, 0.95);
-            border: 1.5px solid rgba(255, 255, 255, 0.15);
-            border-radius: 18px;
-            padding: 16px 18px;
-            text-align: center;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-            animation: pop-in 0.3s ease both;
-        }
-
-        .results-banner-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-
-        .results-banner-details {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 0.88rem;
-            line-height: 1.4;
-        }
-
-        .results-civilians {
-            color: #c7d2fe;
-        }
-
-        .results-spies {
-            color: #fca5a5;
-            font-weight: 700;
-        }
-
-        /* ===== End of Round Revealed Role State ===== */
-        .card.revealed-final-civilian .card-inner,
-        .card.revealed-final-spy .card-inner {
-            transform: none !important;
-        }
-
-        .card.revealed-final-civilian .card-front {
-            background: linear-gradient(145deg, #1e1b4b, #2e2a72) !important;
-            border: 2px solid #818cf8 !important;
-            color: #fff !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 10px !important;
-        }
-
-        .card.revealed-final-spy .card-front {
-            background: linear-gradient(145deg, #4c0519, #881337) !important;
-            border: 2px solid #f43f5e !important;
-            box-shadow: 0 0 16px rgba(244, 63, 94, 0.45) !important;
-            color: #fff !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-            padding: 10px !important;
-        }
-
-        .final-role-badge {
-            font-size: 0.65rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            padding: 3px 8px;
-            border-radius: 6px;
-            margin-bottom: 6px;
-            display: inline-block;
-        }
-
-        .final-role-badge.civilian {
-            background: rgba(99, 102, 241, 0.25);
-            color: #a5b4fc;
-        }
-
-        .final-role-badge.spy {
-            background: rgba(244, 63, 94, 0.35);
-            color: #fda4af;
-        }
-
-        .final-word-label {
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-top: 4px;
-            word-break: break-word;
-            color: #fff;
-        }
-
-        /* ===== Animations ===== */
-        @keyframes pop-in {
-            from {
-                opacity: 0;
-                transform: translateY(10px) scale(0.96);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
         }
 
         /* ===== Collapsible Settings Panel ===== */
@@ -728,7 +670,7 @@
             <h2>Game Setup</h2>
             <p class="subtitle">Choose your options, then start the round.</p>
 
-            <div class="option-group">
+            <div class="options-grid">
                 <div class="option-item">
                     <label for="player-count" class="option-label players">👥 Players</label>
                     <input type="number" id="player-count" min="3" max="25" value="4" class="option-input" inputmode="numeric">
@@ -742,8 +684,8 @@
                 <div class="option-item">
                     <label for="spy-mode" class="option-label mode">⚙️ Spy Mode</label>
                     <select id="spy-mode" class="option-select">
-                        <option value="similar" selected>Similar word (Undercover)</option>
-                        <option value="spy">Classic (You are Spy)</option>
+                        <option value="spy" selected>Classic (You are Spy)</option>
+                        <option value="similar">Similar word (Undercover)</option>
                         <option value="random">Random word (Unrelated)</option>
                     </select>
                     <span class="option-hint">how the spy is shown</span>
@@ -751,7 +693,7 @@
             </div>
 
             <p id="mode-hint" class="mode-hint">
-                In <strong>Similar Word</strong> mode, civilians receive one secret word and the spy receives a closely related word (e.g., <em>Coffee</em> vs <em>Tea</em>). The spy blends in for deeper deduction rounds!
+                In <strong>Classic</strong> mode, the spy is alerted <em>"You are the SPY!"</em> with no word, and must pretend to know the secret word.
             </p>
 
             <button id="start-button" class="start-btn">Start Game</button>
@@ -782,8 +724,8 @@
                 <div class="settings-field">
                     <label for="inline-mode">⚙️ Mode</label>
                     <select id="inline-mode">
+                        <option value="spy" selected>Classic</option>
                         <option value="similar">Similar word</option>
-                        <option value="spy">Classic</option>
                         <option value="random">Random word</option>
                     </select>
                 </div>
@@ -813,13 +755,9 @@
             </div>
         </div>
 
-        <!-- Action area at the bottom -->
-        <div class="game-actions-area">
-            <div id="results-banner" class="results-banner hidden"></div>
-            <div class="action-buttons-row">
-                <button id="reveal-all-button" class="reveal-all-btn">👁️ Reveal Roles & Words</button>
-                <button id="new-game-button" class="new-game-btn">🔄 Next Round</button>
-            </div>
+        <!-- New Game button at the bottom -->
+        <div class="new-game-area">
+            <button id="new-game-button" class="new-game-btn">🔄 New Game</button>
         </div>
     </div>
 
@@ -851,13 +789,12 @@
         ];
 
         // ===== State =====
-        let allWords = (typeof SPY_ALL_WORDS !== 'undefined') ? [...SPY_ALL_WORDS] : [];
-        let availableWords = [...allWords];
+        let allWords = [];
+        let availableWords = [];
         let availableClusters = (typeof SPY_SEMANTIC_CLUSTERS !== 'undefined' && SPY_SEMANTIC_CLUSTERS.length > 0)
             ? shuffle([...SPY_SEMANTIC_CLUSTERS])
             : shuffle([...FALLBACK_CLUSTERS]);
         let currentlyOpenCard = null;
-        let currentRoundData = null;
 
         // ===== DOM Elements =====
         const setupScreen      = document.getElementById('setup-screen');
@@ -866,8 +803,6 @@
         const backButton       = document.getElementById('back-button');
         const settingsButton   = document.getElementById('settings-button');
         const newGameButton    = document.getElementById('new-game-button');
-        const revealAllButton  = document.getElementById('reveal-all-button');
-        const resultsBanner    = document.getElementById('results-banner');
         const settingsPanel    = document.getElementById('settings-panel');
         const settingsOverlay  = document.getElementById('settings-overlay');
         const settingsApply    = document.getElementById('settings-apply');
@@ -883,10 +818,10 @@
 
         // ===== Mode Hint Updates =====
         function updateModeHint(mode) {
-            if (mode === 'similar') {
-                modeHint.innerHTML = 'In <strong>Similar Word</strong> mode, civilians receive one secret word and the spy receives a closely related word (e.g., <em>Coffee</em> vs <em>Tea</em>). The spy can blend in, creating clever clues and longer deduction rounds!';
-            } else if (mode === 'spy') {
+            if (mode === 'spy') {
                 modeHint.innerHTML = 'In <strong>Classic</strong> mode, the spy is alerted <em>"You are the SPY!"</em> with no word, and must pretend to know the secret word.';
+            } else if (mode === 'similar') {
+                modeHint.innerHTML = 'In <strong>Similar Word</strong> mode, civilians receive one secret word and the spy receives a closely related word (e.g., <em>Coffee</em> vs <em>Tea</em>). The spy can blend in, creating clever clues and longer deduction rounds!';
             } else if (mode === 'random') {
                 modeHint.innerHTML = 'In <strong>Random Word</strong> mode, the spy gets a completely unrelated secret word without knowing they are the spy.';
             }
@@ -894,35 +829,40 @@
 
         // ===== Word Loading =====
         async function loadWords() {
-            // Check if global database from words.js is ready
-            if (typeof SPY_ALL_WORDS !== 'undefined' && SPY_ALL_WORDS.length > 0) {
-                allWords = [...SPY_ALL_WORDS];
-                availableWords = [...allWords];
+            // 1. Related words: strictly from words.js semantic clusters
+            if (typeof SPY_SEMANTIC_CLUSTERS !== 'undefined' && SPY_SEMANTIC_CLUSTERS.length > 0) {
                 availableClusters = shuffle([...SPY_SEMANTIC_CLUSTERS]);
-                startButton.disabled = false;
-                startButton.textContent = 'Start Game';
+            } else {
+                availableClusters = shuffle([...FALLBACK_CLUSTERS]);
             }
 
-            // Optional background fetch from Google Sheet to add any extra words
+            // 2. Unrelated / Classic words: fetched from Google Sheet
             try {
+                startButton.disabled = true;
+                startButton.textContent = 'Loading Words…';
+
                 const sheetURL = 'https://docs.google.com/spreadsheets/d/1k3pE4dRKMqpACy6NCLhOkmeZZS0gj0TQ_8XCim6xt_k/export?format=csv';
                 const response = await fetch(sheetURL);
-                if (response.ok) {
-                    const data = await response.text();
-                    const sheetWords = data
-                        .split(/\r?\n/)
-                        .slice(1)
-                        .map(w => w.trim())
-                        .filter(w => w.length > 0);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.text();
+                const sheetWords = data
+                    .split(/\r?\n/)
+                    .slice(1)
+                    .map(w => w.trim())
+                    .filter(w => w.length > 0);
 
-                    if (sheetWords.length > 0) {
-                        const merged = new Set([...allWords, ...sheetWords]);
-                        allWords = Array.from(merged);
-                        availableWords = [...allWords];
-                    }
+                if (sheetWords.length > 0) {
+                    allWords = sheetWords;
+                    availableWords = [...allWords];
+                } else {
+                    throw new Error('Google Sheet returned empty word list.');
                 }
             } catch (err) {
-                console.log('Running in offline mode with bundled word database.');
+                console.warn('Google Sheet unreachable, falling back to bundled offline words:', err);
+                if (typeof SPY_ALL_WORDS !== 'undefined' && SPY_ALL_WORDS.length > 0) {
+                    allWords = [...SPY_ALL_WORDS];
+                    availableWords = [...allWords];
+                }
             } finally {
                 startButton.disabled = false;
                 startButton.textContent = 'Start Game';
@@ -988,11 +928,6 @@
             }
             errorMessage.textContent = '';
 
-            // Reset results banner & reveal button
-            resultsBanner.classList.add('hidden');
-            resultsBanner.innerHTML = '';
-            revealAllButton.textContent = '👁️ Reveal Roles & Words';
-
             let chosenWord = '';
             let spyWord = '';
 
@@ -1033,15 +968,15 @@
                 spyIndexes.add(Math.floor(Math.random() * playerCount));
             }
 
-            // Store round data for final reveal
-            currentRoundData = {
-                civilianWord: chosenWord,
-                spyWord: spyWord,
-                spyIndexes: spyIndexes,
-                mode: spyMode,
-                playerCount: playerCount,
-                cards: []
-            };
+            // Determine grid layout
+            cardGrid.removeAttribute('data-cols');
+            if (playerCount <= 4) {
+                cardGrid.setAttribute('data-cols', '2');
+            } else if (playerCount <= 9) {
+                cardGrid.setAttribute('data-cols', '3');
+            } else {
+                cardGrid.setAttribute('data-cols', '4');
+            }
 
             // Build cards
             currentlyOpenCard = null;
@@ -1052,7 +987,7 @@
                 if (isSpy) {
                     if (spyMode === 'similar' || spyMode === 'random') {
                         word = spyWord;
-                        role = 'Civilian'; // Disguised as standard Civilian card so the player sees a normal word
+                        role = 'Civilian'; // Disguised as standard Civilian card
                     } else {
                         word = '';
                         role = 'SPY';
@@ -1061,8 +996,7 @@
                     word = chosenWord;
                     role = 'Civilian';
                 }
-                const cardEl = createCard(i + 1, word, role, isSpy);
-                currentRoundData.cards.push({ playerNumber: i + 1, word, role, isSpy, element: cardEl });
+                createCard(i + 1, word, role);
             }
 
             // Switch to game screen
@@ -1072,18 +1006,16 @@
         }
 
         // ===== Create Card =====
-        function createCard(playerNumber, word, role, isSpy) {
+        function createCard(playerNumber, word, role) {
             const card = document.createElement('div');
             card.className = 'card';
             card.style.animationDelay = `${(playerNumber - 1) * 0.04}s`;
             card.dataset.word = word;
             card.dataset.role = role;
-            card.dataset.player = playerNumber;
-            card.dataset.isSpy = isSpy ? 'true' : 'false';
 
-            const showSpyCard = (role === 'SPY');
-            const backClass = showSpyCard ? 'card-face card-back spy' : 'card-face card-back civilian';
-            const backContent = showSpyCard
+            const isSpy = (role === 'SPY');
+            const backClass = isSpy ? 'card-face card-back spy' : 'card-face card-back civilian';
+            const backContent = isSpy
                 ? `<p class="spy-title">You are the SPY!</p>
                    <p class="spy-subtitle">Blend in and find the word.</p>`
                 : `<p class="word-label">Your word</p>
@@ -1103,14 +1035,15 @@
             `;
 
             const handleFlip = () => {
-                // If round is finalized, clicks do nothing
-                if (card.classList.contains('revealed-final-civilian') || card.classList.contains('revealed-final-spy')) return;
+                // Already revealed — ignore
+                if (card.classList.contains('revealed')) return;
 
                 if (card.classList.contains('flipped')) {
-                    // Flip back and mark as revealed (hiding secret word for the next player)
+                    // Flip back and mark as revealed
                     card.classList.remove('flipped');
                     card.classList.add('revealed');
 
+                    // Update front to gray with just "Revealed" text
                     const front = card.querySelector('.card-front');
                     front.innerHTML = `
                         <p class="player-num">Player ${playerNumber}</p>
@@ -1127,68 +1060,6 @@
 
             card.addEventListener('click', handleFlip);
             cardGrid.appendChild(card);
-            return card;
-        }
-
-        // ===== Reveal All Roles & Words (End of Round) =====
-        function revealAllRoles() {
-            if (!currentRoundData) return;
-
-            currentRoundData.cards.forEach(c => {
-                const cardEl = c.element;
-                cardEl.classList.remove('flipped');
-                cardEl.classList.add('revealed');
-                const front = cardEl.querySelector('.card-front');
-
-                if (c.isSpy) {
-                    cardEl.classList.add('revealed-final-spy');
-                    front.innerHTML = `
-                        <span class="final-role-badge spy">🎭 SPY</span>
-                        <p class="player-num">Player ${c.playerNumber}</p>
-                        <p class="final-word-label">${c.word || 'No Word'}</p>
-                    `;
-                } else {
-                    cardEl.classList.add('revealed-final-civilian');
-                    front.innerHTML = `
-                        <span class="final-role-badge civilian">Civilian</span>
-                        <p class="player-num">Player ${c.playerNumber}</p>
-                        <p class="final-word-label">${c.word}</p>
-                    `;
-                }
-            });
-
-            // Summary lists
-            const spyNumbers = Array.from(currentRoundData.spyIndexes).map(idx => `Player ${idx + 1}`).join(', ');
-            const civNumbers = [];
-            for (let i = 0; i < currentRoundData.playerCount; i++) {
-                if (!currentRoundData.spyIndexes.has(i)) {
-                    civNumbers.push(`Player ${i + 1}`);
-                }
-            }
-
-            let spyWordInfo = '';
-            if (currentRoundData.mode === 'similar') {
-                spyWordInfo = `Similar Word: <strong>"${currentRoundData.spyWord}"</strong>`;
-            } else if (currentRoundData.mode === 'random') {
-                spyWordInfo = `Random Word: <strong>"${currentRoundData.spyWord}"</strong>`;
-            } else {
-                spyWordInfo = `<em>(Classic Spy - No Word)</em>`;
-            }
-
-            resultsBanner.innerHTML = `
-                <div class="results-banner-title">🕵️ Round Completed!</div>
-                <div class="results-banner-details">
-                    <div class="results-civilians">
-                        👥 <strong>Civilians (${civNumbers.join(', ')}):</strong> "${currentRoundData.civilianWord}"
-                    </div>
-                    <div class="results-spies">
-                        🎭 <strong>Spy (${spyNumbers}):</strong> ${spyWordInfo}
-                    </div>
-                </div>
-            `;
-            resultsBanner.classList.remove('hidden');
-            revealAllButton.textContent = '✅ Roles Revealed';
-            resultsBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         // ===== Helpers =====
@@ -1216,7 +1087,6 @@
         settingsButton.addEventListener('click', toggleSettings);
         settingsOverlay.addEventListener('click', closeSettings);
         settingsApply.addEventListener('click', applySettings);
-        revealAllButton.addEventListener('click', revealAllRoles);
         newGameButton.addEventListener('click', () => { closeSettings(); startGame(); });
         document.getElementById('settings-close').addEventListener('click', closeSettings);
 
@@ -1230,4 +1100,3 @@
     </script>
 </body>
 </html>
-
